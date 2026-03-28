@@ -71,8 +71,12 @@ export default function GlobalHaberler() {
       const allFetchedNews = [];
       const fetchPromises = activeTag.urls.map(async (url) => {
         try {
-          const res = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(url)}&api_key=oyncyf0mgh8v7e5lq9w5z9yqyv8u78moxg8p9r9j`);
-          const data = await res.json();
+          // PROXY TUNNEL: Güvenlik duvarını aşmak için AllOrigins tüneli eklendi
+          const apiUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(url)}&api_key=oyncyf0mgh8v7e5lq9w5z9yqyv8u78moxg8p9r9j`;
+          const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(apiUrl)}`);
+          const wrapper = await res.json();
+          const data = JSON.parse(wrapper.contents);
+          
           if (data.status === "ok" && data.items) {
             return data.items.map(item => ({
               id: item.guid || item.link,
@@ -95,7 +99,7 @@ export default function GlobalHaberler() {
         const combined = [...allFetchedNews, ...prev];
         return combined.filter((v, i, a) => a.findIndex(t => t.baslik === v.baslik) === i);
       });
-    } catch (e) { console.error("Error"); } finally { setLoading(false); }
+    } catch (e) { console.error("Sync Error"); } finally { setLoading(false); }
   }
 
   const displayData = useMemo(() => {
@@ -135,19 +139,19 @@ export default function GlobalHaberler() {
                 <div style={{ color: "#c9a96e", fontWeight: "900", fontSize: "12px" }}>#{selectedNews.tagLabel} • {getRelativeTime(selectedNews.timestamp)}</div>
                 <h2 style={{ fontFamily: "'Playfair Display'", fontSize: "32px", color: "#fff", margin: "15px 0" }}>{selectedNews.baslik}</h2>
                 <p style={{ color: "#8a9ab0", lineHeight: "1.8", fontSize: "18px" }}>{selectedNews.detay}</p>
-                <a href={selectedNews.url} target="_blank" rel="noreferrer" style={{ background: "#c9a96e", color: "#0d1424", padding: "12px 30px", textDecoration: "none", fontWeight: "bold", borderRadius: "4px", display: "inline-block", marginTop: "20px" }}>SOURCE ↗</a>
+                <a href={selectedNews.url} target="_blank" rel="noreferrer" style={{ background: "#c9a96e", color: "#0d1424", padding: "12px 30px", textDecoration: "none", fontWeight: "bold", borderRadius: "4px", display: "inline-block", marginTop: "20px" }}>KAYNAĞA GİT ↗</a>
               </>
             )}
             {modalType === 'about' && (
               <>
                 <h2 style={{ color: "#c9a96e", fontFamily: "'Playfair Display'" }}>HAKKIMIZDA</h2>
-                <p style={{ lineHeight: "1.8", color: "#8a9ab0" }}>WorldWindows.network, küresel finans, jeopolitik ve ekonomi haberlerini saniyeler içinde tarayan profesyonel bir haber terminalidir. Amacımız, en taze bilgiyi en hızlı haliyle sunmaktır.</p>
+                <p style={{ lineHeight: "1.8", color: "#8a9ab0" }}>WorldWindows.network, küresel finans ve jeopolitik haberleri saniyeler içinde tarayan profesyonel bir haber terminalidir.</p>
               </>
             )}
             {modalType === 'privacy' && (
               <>
-                <h2 style={{ color: "#c9a96e", fontFamily: "'Playfair Display'" }}>GİZLİLİK POLİTİKASI</h2>
-                <p style={{ lineHeight: "1.8", color: "#8a9ab0" }}>Kullanıcı verilerinizin gizliliği bizim için önemlidir. Sitemiz, reklam hizmetleri sunmak amacıyla Google AdSense çerezleri kullanabilir.</p>
+                <h2 style={{ color: "#c9a96e", fontFamily: "'Playfair Display'" }}>GİZLİLİK</h2>
+                <p style={{ lineHeight: "1.8", color: "#8a9ab0" }}>Reklam hizmetleri için çerezler (cookies) kullanılabilir.</p>
               </>
             )}
             {modalType === 'contact' && (
@@ -180,32 +184,37 @@ export default function GlobalHaberler() {
       </header>
 
       <main style={{ maxWidth: "1400px", margin: "0 auto" }}>
-        <section style={{ padding: "30px 0" }}>
-          <h2 style={{ fontSize: "20px", color: "#c9a96e", fontFamily: "'Playfair Display'", padding: "0 32px", marginBottom: "10px" }}>LIVE RADAR</h2>
-          <div className="news-slider">
-            {displayData.radar.map(n => (
-              <div key={n.id} className="news-card" onClick={() => { setSelectedNews(n); setModalType('news'); }}>
-                <div className="time-badge" translate="no">{getRelativeTime(n.timestamp)}</div>
-                <img src={n.img} />
-                <div style={{ padding: "25px" }}>
-                  <div style={{ color: "#c9a96e", fontWeight: "900", fontSize: "10px", marginBottom: "8px" }}>{n.kaynak.toUpperCase()}</div>
-                  <h3 style={{ fontSize: "18px", color: "#e8e6e0", lineHeight: "1.3", margin: 0, fontFamily: "'Playfair Display'" }}>{n.baslik}</h3>
-                </div>
+        {loading && newsPool.length === 0 ? (
+          <div style={{ textAlign: "center", padding: "100px", color: "#c9a96e", letterSpacing: "3px" }}>TUNNELING GLOBAL FEEDS...</div>
+        ) : (
+          <>
+            <section style={{ padding: "30px 0" }}>
+              <h2 style={{ fontSize: "18px", color: "#c9a96e", fontFamily: "'Playfair Display'", padding: "0 32px", marginBottom: "10px" }}>LIVE RADAR</h2>
+              <div className="news-slider">
+                {displayData.radar.map(n => (
+                  <div key={n.id} className="news-card" onClick={() => { setSelectedNews(n); setModalType('news'); }}>
+                    <div className="time-badge" translate="no">{getRelativeTime(n.timestamp)}</div>
+                    <img src={n.img} />
+                    <div style={{ padding: "25px" }}>
+                      <div style={{ color: "#c9a96e", fontWeight: "900", fontSize: "10px", marginBottom: "8px" }}>{n.kaynak.toUpperCase()}</div>
+                      <h3 style={{ fontSize: "18px", color: "#e8e6e0", lineHeight: "1.3", margin: 0, fontFamily: "'Playfair Display'" }}>{n.baslik}</h3>
+                    </div>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-        </section>
-
-        <section style={{ padding: "30px 0", borderTop: "1px solid #1e2d4a" }}>
-          <div className="archive-grid">
-            {displayData.archive.map(n => (
-              <div key={n.id} className="archive-card" onClick={() => { setSelectedNews(n); setModalType('news'); }}>
-                <div style={{ fontSize: "10px", color: "#c9a96e", marginBottom: "8px", fontWeight: "900" }} translate="no">#{n.tagLabel} • {getRelativeTime(n.timestamp)}</div>
-                <h4 style={{ fontSize: "16px", color: "#e8e6e0", lineHeight: "1.4", margin: 0 }}>{n.baslik}</h4>
+            </section>
+            <section style={{ padding: "30px 0", borderTop: "1px solid #1e2d4a" }}>
+              <div className="archive-grid">
+                {displayData.archive.map(n => (
+                  <div key={n.id} className="archive-card" onClick={() => { setSelectedNews(n); setModalType('news'); }}>
+                    <div style={{ fontSize: "10px", color: "#c9a96e", marginBottom: "8px", fontWeight: "900" }} translate="no">#{n.tagLabel} • {getRelativeTime(n.timestamp)}</div>
+                    <h4 style={{ fontSize: "16px", color: "#e8e6e0", lineHeight: "1.4", margin: 0 }}>{n.baslik}</h4>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-        </section>
+            </section>
+          </>
+        )}
       </main>
 
       <footer className="footer">
