@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef, memo, useMemo } from "react";
 
-// GLOBAL MEDYA DEVLERİ VE KAYNAKLAR
 const GLOBAL_TAGS = [
   { id: "all", label: "TÜMÜ", urls: ["http://feeds.bbci.co.uk/news/world/rss.xml", "https://www.theguardian.com/world/rss", "https://rss.nytimes.com/services/xml/rss/nyt/World.xml", "https://www.reutersagency.com/feed/"]},
   { id: "ekonomi", label: "EKONOMİ/FT", urls: ["https://www.ft.com/?format=rss", "https://www.economist.com/sections/economics/rss.xml", "https://www.wsj.com/xml/rss/3_7014.xml", "https://www.forbes.com/economics/feed/"]},
@@ -52,7 +51,7 @@ export default function GlobalHaberler() {
   const [selectedNews, setSelectedNews] = useState(null);
   const [activeTag, setActiveTag] = useState(GLOBAL_TAGS[0]);
   const [timeLeft, setTimeLeft] = useState(60);
-  const [modalType, setModalType] = useState(null); // 'news', 'about', 'privacy', 'contact'
+  const [modalType, setModalType] = useState(null);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -122,11 +121,10 @@ export default function GlobalHaberler() {
         .footer { background: #0d1424; padding: 40px 32px; border-top: 1px solid #1e2d4a; text-align: center; }
         .footer-link { color: #4a6080; text-decoration: none; margin: 0 15px; font-size: 12px; font-weight: bold; cursor: pointer; transition: 0.2s; }
         .footer-link:hover { color: #c9a96e; }
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(8,12,20,0.98); backdrop-filter: blur(15px); z-index: 10000; display: flex; justifyContent: center; alignItems: center; padding: 20px; }
-        .modal-content { background: #0d1424; border: 1px solid #c9a96e; border-radius: 12px; maxWidth: 850px; width: 100%; maxHeight: 90vh; overflowY: auto; position: relative; padding: 40px; }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(8,12,20,0.98); backdrop-filter: blur(15px); z-index: 10000; display: flex; justify-content: center; align-items: center; padding: 20px; }
+        .modal-content { background: #0d1424; border: 1px solid #c9a96e; border-radius: 12px; max-width: 850px; width: 100%; max-height: 90vh; overflow-y: auto; position: relative; padding: 40px; }
       `}</style>
 
-      {/* MODAL SİSTEMİ */}
       {modalType && (
         <div className="modal-overlay" onClick={() => setModalType(null)}>
           <button className="close-btn" onClick={() => setModalType(null)}>✕</button>
@@ -137,26 +135,25 @@ export default function GlobalHaberler() {
                 <div style={{ color: "#c9a96e", fontWeight: "900", fontSize: "12px" }}>#{selectedNews.tagLabel} • {getRelativeTime(selectedNews.timestamp)}</div>
                 <h2 style={{ fontFamily: "'Playfair Display'", fontSize: "32px", color: "#fff", margin: "15px 0" }}>{selectedNews.baslik}</h2>
                 <p style={{ color: "#8a9ab0", lineHeight: "1.8", fontSize: "18px" }}>{selectedNews.detay}</p>
-                <a href={selectedNews.url} target="_blank" rel="noreferrer" style={{ background: "#c9a96e", color: "#0d1424", padding: "12px 30px", textDecoration: "none", fontWeight: "bold", borderRadius: "4px", display: "inline-block", marginTop: "20px" }}>KAYNAĞA GİT ↗</a>
+                <a href={selectedNews.url} target="_blank" rel="noreferrer" style={{ background: "#c9a96e", color: "#0d1424", padding: "12px 30px", textDecoration: "none", fontWeight: "bold", borderRadius: "4px", display: "inline-block", marginTop: "20px" }}>SOURCE ↗</a>
               </>
             )}
             {modalType === 'about' && (
               <>
                 <h2 style={{ color: "#c9a96e", fontFamily: "'Playfair Display'" }}>HAKKIMIZDA</h2>
-                <p style={{ lineHeight: "1.8", color: "#8a9ab0" }}>Dünya Penceresi, küresel finans, jeopolitik ve ekonomi haberlerini saniyeler içinde tarayan profesyonel bir haber terminalidir. Amacımız, karmaşık haber akışını tek bir ekranda, en saf ve hızlı haliyle sunmaktır. Kaynaklarımız arasında Reuters, FT, WSJ ve Bloomberg gibi dev medya kuruluşları yer almaktadır.</p>
+                <p style={{ lineHeight: "1.8", color: "#8a9ab0" }}>WorldWindows.network, küresel finans, jeopolitik ve ekonomi haberlerini saniyeler içinde tarayan profesyonel bir haber terminalidir. Amacımız, en taze bilgiyi en hızlı haliyle sunmaktır.</p>
               </>
             )}
             {modalType === 'privacy' && (
               <>
                 <h2 style={{ color: "#c9a96e", fontFamily: "'Playfair Display'" }}>GİZLİLİK POLİTİKASI</h2>
-                <p style={{ lineHeight: "1.8", color: "#8a9ab0" }}>Kullanıcı verilerinizin gizliliği bizim için önemlidir. Sitemiz, kullanıcı deneyimini artırmak ve reklam hizmetleri sunmak amacıyla çerezler (cookies) kullanmaktadır. Üçüncü taraf reklam sağlayıcılar (Google AdSense gibi), ilgi alanlarınıza göre reklam göstermek için çerezleri kullanabilir. Sitemizi kullanarak bu çerez kullanımını kabul etmiş sayılırsınız.</p>
+                <p style={{ lineHeight: "1.8", color: "#8a9ab0" }}>Kullanıcı verilerinizin gizliliği bizim için önemlidir. Sitemiz, reklam hizmetleri sunmak amacıyla Google AdSense çerezleri kullanabilir.</p>
               </>
             )}
             {modalType === 'contact' && (
               <>
                 <h2 style={{ color: "#c9a96e", fontFamily: "'Playfair Display'" }}>İLETİŞİM</h2>
-                <p style={{ lineHeight: "1.8", color: "#8a9ab0" }}>Sorularınız, iş birlikleri veya reklam teklifleri için bize aşağıdaki e-posta adresi üzerinden ulaşabilirsiniz:</p>
-                <h3 style={{ color: "#fff" }}>iletisim@dunyapenceresi.com</h3>
+                <h3 style={{ color: "#fff" }}>iletisim@worldwindows.network</h3>
               </>
             )}
           </div>
@@ -165,7 +162,10 @@ export default function GlobalHaberler() {
 
       <header style={{ background: "#0d1424" }}>
         <div style={{ maxWidth: "1400px", margin: "0 auto", padding: "20px 32px 5px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <h1 style={{ fontFamily: "'Playfair Display'", fontSize: "32px", color: "#c9a96e", fontWeight: "900", margin: 0 }}>DÜNYA PENCERESİ</h1>
+          <div>
+            <h1 style={{ fontFamily: "'Playfair Display'", fontSize: "32px", color: "#c9a96e", fontWeight: "900", margin: 0 }}>WORLD WINDOWS</h1>
+            <div style={{ fontSize: "10px", color: "#4a6080", letterSpacing: "3px", fontWeight: "bold" }}>.NETWORK INTELLIGENCE</div>
+          </div>
           <div style={{ display: "flex", gap: "20px", alignItems: "center" }} translate="no">
              <div style={{ fontSize: "12px", color: "#c9a96e", fontWeight: "bold" }}>SYNC: {timeLeft}s</div>
              <button onClick={() => { fetchCollectiveNews(); setTimeLeft(60); }} style={{ background: "#c9a96e", color: "#0d1424", border: "none", padding: "8px 20px", borderRadius: "4px", fontWeight: "900", cursor: "pointer", fontSize: "11px" }}>SYNC NOW</button>
@@ -181,7 +181,7 @@ export default function GlobalHaberler() {
 
       <main style={{ maxWidth: "1400px", margin: "0 auto" }}>
         <section style={{ padding: "30px 0" }}>
-          <h2 style={{ fontSize: "20px", color: "#c9a96e", fontFamily: "'Playfair Display'", padding: "0 32px", marginBottom: "10px" }}>LIVE RADAR: {activeTag.label}</h2>
+          <h2 style={{ fontSize: "20px", color: "#c9a96e", fontFamily: "'Playfair Display'", padding: "0 32px", marginBottom: "10px" }}>LIVE RADAR</h2>
           <div className="news-slider">
             {displayData.radar.map(n => (
               <div key={n.id} className="news-card" onClick={() => { setSelectedNews(n); setModalType('news'); }}>
@@ -197,7 +197,6 @@ export default function GlobalHaberler() {
         </section>
 
         <section style={{ padding: "30px 0", borderTop: "1px solid #1e2d4a" }}>
-          <h2 style={{ fontSize: "20px", color: "#8a9ab0", padding: "0 32px", fontFamily: "'Playfair Display'", marginBottom: "20px" }}>ARCHIVE</h2>
           <div className="archive-grid">
             {displayData.archive.map(n => (
               <div key={n.id} className="archive-card" onClick={() => { setSelectedNews(n); setModalType('news'); }}>
@@ -210,13 +209,13 @@ export default function GlobalHaberler() {
       </main>
 
       <footer className="footer">
-        <div style={{ color: "#c9a96e", fontWeight: "900", marginBottom: "20px" }}>DÜNYA PENCERESİ</div>
+        <div style={{ color: "#c9a96e", fontWeight: "900", marginBottom: "20px" }}>WORLDWINDOWS.NETWORK</div>
         <div>
-          <span className="footer-link" onClick={() => setModalType('about')}>HAKKIMIZDA</span>
-          <span className="footer-link" onClick={() => setModalType('privacy')}>GİZLİLİK POLİTİKASI</span>
-          <span className="footer-link" onClick={() => setModalType('contact')}>İLETİŞİM</span>
+          <span className="footer-link" onClick={() => setModalType('about')}>ABOUT</span>
+          <span className="footer-link" onClick={() => setModalType('privacy')}>PRIVACY</span>
+          <span className="footer-link" onClick={() => setModalType('contact')}>CONTACT</span>
         </div>
-        <div style={{ color: "#3a5278", fontSize: "10px", marginTop: "30px" }}>© 2026 Dunya Penceresi Terminal. All Rights Reserved.</div>
+        <div style={{ color: "#3a5278", fontSize: "10px", marginTop: "30px" }}>© 2026 World Windows Network. All Rights Reserved.</div>
       </footer>
     </div>
   );
