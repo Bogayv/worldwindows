@@ -12,16 +12,6 @@ const GLOBAL_TAGS = [
   { id: "kap", label: "KAP", urls: ["https://www.paraanaliz.com/feed/", "https://www.dunya.com/rss"]},
 ];
 
-const getRelativeTime = (ts) => {
-  const diff = Date.now() - ts;
-  const m = Math.floor(diff / 60000);
-  const h = Math.floor(m / 60);
-  if (m < 1) return "Az önce";
-  if (m < 60) return `${m} dk önce`;
-  if (h < 24) return `${h} saat önce`;
-  return `${Math.floor(h / 24)} gün önce`;
-};
-
 const TradingViewLiveTicker = memo(() => {
   const container = useRef();
   useEffect(() => {
@@ -48,130 +38,95 @@ const TradingViewLiveTicker = memo(() => {
 export default function GlobalHaberler() {
   const [newsPool, setNewsPool] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [selectedNews, setSelectedNews] = useState(null);
   const [activeTag, setActiveTag] = useState(GLOBAL_TAGS[0]);
   const [timeLeft, setTimeLeft] = useState(60);
-  const [modalType, setModalType] = useState(null);
 
   useEffect(() => {
     const timer = setInterval(() => {
       setTimeLeft(prev => {
-        if (prev <= 1) { fetchCollectiveNews(); return 60; }
+        if (prev <= 1) { fetchNews(); return 60; }
         return prev - 1;
       });
     }, 1000);
     return () => clearInterval(timer);
   }, [activeTag]);
 
-  useEffect(() => { fetchCollectiveNews(); setTimeLeft(60); }, [activeTag]);
+  useEffect(() => { fetchNews(); }, [activeTag]);
 
-  async function fetchCollectiveNews() {
+  async function fetchNews() {
     setLoading(true);
-    const allFetchedNews = [];
+    let allItems = [];
     
+    // YENİ STRATEJİ: Her URL'yi tek tek ve güvenli tünelle dene
     for (const url of activeTag.urls) {
       try {
-        const res = await fetch(`/api/news?url=${encodeURIComponent(url)}`);
+        const proxyUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(url)}&api_key=oyncyf0mgh8v7e5lq9w5z9yqyv8u78moxg8p9r9j`;
+        const res = await fetch(proxyUrl);
         const data = await res.json();
         
-        if (data.status === "ok" && data.items) {
-          const items = data.items.map(item => ({
+        if (data.status === "ok") {
+          const processed = data.items.map(item => ({
             id: item.guid || item.link,
             baslik: item.title,
-            ozet: item.description?.replace(/<[^>]*>?/gm, '').slice(0, 180) + "...",
-            detay: item.content?.replace(/<[^>]*>?/gm, '') || item.description?.replace(/<[^>]*>?/gm, ''),
-            kaynak: data.feed.title || "Global Intel",
+            kaynak: data.feed.title || "Global",
             url: item.link,
             img: item.enclosure?.link || item.thumbnail || `https://picsum.photos/seed/${encodeURIComponent(item.title.slice(0,5))}/800/450`,
-            tagLabel: activeTag.label,
-            tagId: activeTag.id,
             timestamp: new Date(item.pubDate).getTime()
           }));
-          allFetchedNews.push(...items);
+          allItems = [...allItems, ...processed];
         }
-      } catch (e) {
-        console.error("Haber hatasi");
-      }
+      } catch (e) { console.log("Hata:", url); }
     }
-
-    setNewsPool(prev => {
-      const combined = [...allFetchedNews, ...prev];
-      return combined.filter((v, i, a) => a.findIndex(t => t.baslik === v.baslik) === i);
-    });
+    
+    setNewsPool(allItems.sort((a,b) => b.timestamp - a.timestamp));
     setLoading(false);
   }
 
-  const displayData = useMemo(() => {
-    const filtered = activeTag.id === "all" ? newsPool : newsPool.filter(i => i.tagId === activeTag.id);
-    const sorted = [...filtered].sort((a, b) => b.timestamp - a.timestamp);
-    return { radar: sorted.slice(0, 8), archive: sorted.slice(8, 500) };
-  }, [newsPool, activeTag]);
-
   return (
-    <div style={{ minHeight: "100vh", background: "#080c14", color: "#e8e6e0", fontFamily: "'Source Sans 3', sans-serif", overflowX: "hidden" }}>
+    <div style={{ minHeight: "100vh", background: "#080c14", color: "#e8e6e0", fontFamily: "sans-serif" }}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Source+Sans+3:wght@400;700&display=swap');
-        .tag-bar { display: flex; gap: 8px; overflow-x: auto; padding: 12px 32px; background: #0d1424; border-bottom: 1px solid #1e2d4a; position: sticky; top: 0; z-index: 100; }
-        .tag-pill { padding: 6px 16px; background: #080c14; border: 1px solid #1e2d4a; border-radius: 4px; color: #4a6080; font-size: 10px; font-weight: 900; cursor: pointer; white-space: nowrap; transition: 0.2s; }
-        .tag-pill.active { background: #c9a96e; border-color: #c9a96e; color: #0d1424; }
-        .news-slider { display: flex; gap: 24px; overflow-x: auto; padding: 20px 32px 40px; }
-        .news-card { min-width: 420px; max-width: 420px; background: #0d1424; border: 1px solid #1e2d4a; border-radius: 12px; cursor: pointer; overflow: hidden; position: relative; }
-        .news-card img { width: 100%; height: 240px; object-fit: cover; border-bottom: 3px solid #c9a96e; }
-        .archive-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 20px; padding: 0 32px 60px; }
-        .archive-card { background: #0d1424; border: 1px solid #1e2d4a; border-radius: 10px; cursor: pointer; padding: 25px; border-left: 4px solid #1e2d4a; }
-        .footer { background: #0d1424; padding: 40px 32px; border-top: 1px solid #1e2d4a; text-align: center; }
+        .tag-bar { display: flex; gap: 8px; overflow-x: auto; padding: 15px 32px; background: #0d1424; border-bottom: 1px solid #1e2d4a; position: sticky; top: 0; z-index: 100; }
+        .tag-pill { padding: 8px 16px; background: #080c14; border: 1px solid #1e2d4a; border-radius: 4px; color: #4a6080; font-size: 11px; font-weight: bold; cursor: pointer; white-space: nowrap; }
+        .tag-pill.active { background: #c9a96e; color: #0d1424; border-color: #c9a96e; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 25px; padding: 32px; }
+        .card { background: #0d1424; border: 1px solid #1e2d4a; border-radius: 12px; overflow: hidden; cursor: pointer; transition: 0.3s; }
+        .card:hover { border-color: #c9a96e; transform: translateY(-5px); }
+        .card img { width: 100%; height: 200px; object-fit: cover; }
       `}</style>
 
-      {modalType && (
-        <div style={{ position: "fixed", top: 0, left: 0, width: "100%", height: "100%", background: "rgba(8,12,20,0.98)", backdropFilter: "blur(15px)", zIndex: 10000, display: "flex", justifyContent: "center", alignItems: "center", padding: "20px" }} onClick={() => setModalType(null)}>
-          <div style={{ background: "#0d1424", border: "1px solid #c9a96e", borderRadius: "12px", maxWidth: "850px", width: "100%", maxHeight: "90vh", overflowY: "auto", position: "relative", padding: "40px" }} onClick={e => e.stopPropagation()}>
-            {selectedNews && (
-              <>
-                <img src={selectedNews.img} style={{ width: "calc(100% + 80px)", margin: "-40px -40px 20px", height: "350px", objectFit: "cover", borderBottom: "2px solid #c9a96e" }} />
-                <h2 style={{ fontFamily: "'Playfair Display'", fontSize: "32px", color: "#fff", margin: "15px 0" }}>{selectedNews.baslik}</h2>
-                <p style={{ color: "#8a9ab0", lineHeight: "1.8", fontSize: "18px" }}>{selectedNews.detay}</p>
-                <a href={selectedNews.url} target="_blank" rel="noreferrer" style={{ background: "#c9a96e", color: "#0d1424", padding: "12px 30px", textDecoration: "none", fontWeight: "bold", borderRadius: "4px", display: "inline-block" }}>KAYNAK ↗</a>
-              </>
-            )}
-          </div>
-        </div>
-      )}
-
-      <header style={{ background: "#0d1424" }}>
-        <div style={{ maxWidth: "1400px", margin: "0 auto", padding: "20px 32px 5px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <h1 style={{ fontFamily: "'Playfair Display'", fontSize: "32px", color: "#c9a96e", fontWeight: "900", margin: 0 }}>WORLD WINDOWS</h1>
-          <div style={{ fontSize: "12px", color: "#c9a96e", fontWeight: "bold" }}>SYNC: {timeLeft}s</div>
-        </div>
-        <div className="tag-bar">
-          {GLOBAL_TAGS.map(t => (
-            <div key={t.id} className={`tag-pill ${activeTag.id === t.id ? 'active' : ''}`} onClick={() => setActiveTag(t)}>#{t.label}</div>
-          ))}
-        </div>
-        <TradingViewLiveTicker />
+      <header style={{ background: "#0d1424", padding: "20px 32px" }}>
+        <h1 style={{ color: "#c9a96e", margin: 0, fontSize: "28px", letterSpacing: "2px" }}>WORLD WINDOWS NETWORK</h1>
+        <div style={{ color: "#4a6080", fontSize: "12px" }}>REFRESHING IN: {timeLeft}s</div>
       </header>
 
-      <main style={{ maxWidth: "1400px", margin: "0 auto" }}>
+      <div className="tag-bar">
+        {GLOBAL_TAGS.map(t => (
+          <div key={t.id} className={`tag-pill ${activeTag.id === t.id ? 'active' : ''}`} onClick={() => setActiveTag(t)}>#{t.label}</div>
+        ))}
+      </div>
+      
+      <TradingViewLiveTicker />
+
+      <main>
         {loading && newsPool.length === 0 ? (
-          <div style={{ textAlign: "center", padding: "100px", color: "#c9a96e" }}>SUNUCU HABERLERİ ÇEKİYOR...</div>
+          <div style={{ padding: "100px", textAlign: "center", color: "#c9a96e" }}>HABERLER YÜKLENİYOR...</div>
         ) : (
-          <section style={{ padding: "30px 0" }}>
-            <div className="news-slider">
-              {displayData.radar.map(n => (
-                <div key={n.id} className="news-card" onClick={() => { setSelectedNews(n); setModalType('news'); }}>
-                  <img src={n.img} />
-                  <div style={{ padding: "25px" }}>
-                    <div style={{ color: "#c9a96e", fontWeight: "900", fontSize: "10px" }}>{n.kaynak.toUpperCase()}</div>
-                    <h3 style={{ fontSize: "18px", color: "#e8e6e0", margin: "10px 0", fontFamily: "'Playfair Display'" }}>{n.baslik}</h3>
-                  </div>
+          <div className="grid">
+            {newsPool.map(n => (
+              <div key={n.id} className="card" onClick={() => window.open(n.url, "_blank")}>
+                <img src={n.img} />
+                <div style={{ padding: "20px" }}>
+                  <div style={{ color: "#c9a96e", fontSize: "10px", fontWeight: "bold", marginBottom: "10px" }}>{n.kaynak.toUpperCase()}</div>
+                  <h3 style={{ fontSize: "16px", margin: 0, lineHeight: "1.4" }}>{n.baslik}</h3>
                 </div>
-              ))}
-            </div>
-          </section>
+              </div>
+            ))}
+          </div>
         )}
       </main>
 
-      <footer className="footer">
-        <div style={{ color: "#c9a96e", fontWeight: "900" }}>WORLDWINDOWS.NETWORK</div>
+      <footer style={{ padding: "40px", textAlign: "center", background: "#0d1424", borderTop: "1px solid #1e2d4a", marginTop: "50px" }}>
+        <div style={{ color: "#c9a96e", fontWeight: "bold" }}>worldwindows.network</div>
       </footer>
     </div>
   );
