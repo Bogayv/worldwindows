@@ -2,25 +2,25 @@ import { useState, useEffect, useRef, memo, useMemo } from "react";
 
 // GLOBAL MEDYA DEVLERİ VE KAYNAKLAR
 const GLOBAL_TAGS = [
-  { id: "all", label: "TÜMÜ", urls: ["http://feeds.bbci.co.uk/news/world/rss.xml", "https://www.theguardian.com/world/rss", "https://rss.nytimes.com/services/xml/rss/nyt/World.xml", "https://www.reutersagency.com/feed/"]},
-  { id: "ekonomi", label: "EKONOMİ/FT", urls: ["https://www.ft.com/?format=rss", "https://www.economist.com/sections/economics/rss.xml", "https://www.wsj.com/xml/rss/3_7014.xml", "https://www.forbes.com/economics/feed/"]},
-  { id: "finans", label: "FİNANS/WSJ", urls: ["https://www.wsj.com/xml/rss/3_7031.xml", "https://www.cnbc.com/id/10000664/device/rss/rss.html", "https://www.ft.com/markets?format=rss"]},
-  { id: "jeopolitik", label: "JEOPOLİTİK", urls: ["https://www.theguardian.com/world/rss", "https://www.aljazeera.com/xml/rss/all.xml", "https://www.independent.co.uk/news/world/rss"]},
-  { id: "siyaset", label: "SİYASET/POLITICO", urls: ["https://www.politico.com/rss/politicopicks.xml", "https://www.theguardian.com/politics/rss"]},
+  { id: "all", label: "ALL", urls: ["http://feeds.bbci.co.uk/news/world/rss.xml", "https://www.theguardian.com/world/rss", "https://rss.nytimes.com/services/xml/rss/nyt/World.xml", "https://www.reutersagency.com/feed/"]},
+  { id: "ekonomi", label: "ECONOMY/FT", urls: ["https://www.ft.com/?format=rss", "https://www.economist.com/sections/economics/rss.xml", "https://www.wsj.com/xml/rss/3_7014.xml", "https://www.forbes.com/economics/feed/"]},
+  { id: "finans", label: "FINANCE/WSJ", urls: ["https://www.wsj.com/xml/rss/3_7031.xml", "https://www.cnbc.com/id/10000664/device/rss/rss.html", "https://www.ft.com/markets?format=rss"]},
+  { id: "jeopolitik", label: "GEOPOLITICS", urls: ["https://www.theguardian.com/world/rss", "https://www.aljazeera.com/xml/rss/all.xml", "https://www.independent.co.uk/news/world/rss"]},
+  { id: "siyaset", label: "POLITICS", urls: ["https://www.politico.com/rss/politicopicks.xml", "https://www.theguardian.com/politics/rss"]},
   { id: "gold", label: "GOLD/SILVER", urls: ["https://www.kitco.com/rss/index.xml", "https://www.investing.com/rss/news_95.rss"]},
   { id: "fed", label: "FED", urls: ["https://www.cnbc.com/id/20910258/device/rss/rss.html"]},
-  { id: "borsa", label: "BORSA", urls: ["https://www.bloomberght.com/rss", "https://www.bigpara.com/rss/"]},
-  { id: "kap", label: "KAP", urls: ["https://www.paraanaliz.com/feed/", "https://www.dunya.com/rss"]},
+  { id: "borsa", label: "MARKETS", urls: ["https://www.bloomberght.com/rss", "https://www.bigpara.com/rss/"]},
+  { id: "kap", label: "CORP NEWS", urls: ["https://www.paraanaliz.com/feed/", "https://www.dunya.com/rss"]},
 ];
 
 const getRelativeTime = (ts) => {
   const diff = Date.now() - ts;
   const m = Math.floor(diff / 60000);
   const h = Math.floor(m / 60);
-  if (m < 1) return "Az önce";
-  if (m < 60) return `${m} dk önce`;
-  if (h < 24) return `${h} saat önce`;
-  return `${Math.floor(h / 24)} gün önce`;
+  if (m < 1) return "Just now";
+  if (m < 60) return `${m} mins ago`;
+  if (h < 24) return `${h} hours ago`;
+  return `${Math.floor(h / 24)} days ago`;
 };
 
 const TradingViewLiveTicker = memo(() => {
@@ -39,7 +39,7 @@ const TradingViewLiveTicker = memo(() => {
         { "proName": "FX:USDTRY", "title": "USD/TRY" },
         { "proName": "BINANCE:BTCUSDT", "title": "BTC" }
       ],
-      "showSymbolLogo": true, "colorTheme": "dark", "isTransparent": false, "displayMode": "regular", "locale": "tr", "backgroundColor": "#000000"
+      "showSymbolLogo": true, "colorTheme": "dark", "isTransparent": false, "displayMode": "regular", "locale": "en", "backgroundColor": "#000000"
     });
     container.current.appendChild(script);
   }, []);
@@ -52,7 +52,7 @@ export default function GlobalHaberler() {
   const [selectedNews, setSelectedNews] = useState(null);
   const [activeTag, setActiveTag] = useState(GLOBAL_TAGS[0]);
   const [timeLeft, setTimeLeft] = useState(60);
-  const [modalType, setModalType] = useState(null); // 'news', 'about', 'privacy', 'contact'
+  const [modalType, setModalType] = useState(null);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -122,11 +122,11 @@ export default function GlobalHaberler() {
         .footer { background: #0d1424; padding: 40px 32px; border-top: 1px solid #1e2d4a; text-align: center; }
         .footer-link { color: #4a6080; text-decoration: none; margin: 0 15px; font-size: 12px; font-weight: bold; cursor: pointer; transition: 0.2s; }
         .footer-link:hover { color: #c9a96e; }
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(8,12,20,0.98); backdrop-filter: blur(15px); z-index: 10000; display: flex; justifyContent: center; alignItems: center; padding: 20px; }
-        .modal-content { background: #0d1424; border: 1px solid #c9a96e; border-radius: 12px; maxWidth: 850px; width: 100%; maxHeight: 90vh; overflowY: auto; position: relative; padding: 40px; }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(8,12,20,0.98); backdrop-filter: blur(15px); z-index: 10000; display: flex; justify-content: center; align-items: center; padding: 20px; }
+        .modal-content { background: #0d1424; border: 1px solid #c9a96e; border-radius: 12px; max-width: 850px; width: 100%; max-height: 90vh; overflow-y: auto; position: relative; padding: 40px; }
       `}</style>
 
-      {/* MODAL SİSTEMİ */}
+      {/* MODAL SYSTEM */}
       {modalType && (
         <div className="modal-overlay" onClick={() => setModalType(null)}>
           <button className="close-btn" onClick={() => setModalType(null)}>✕</button>
@@ -137,25 +137,25 @@ export default function GlobalHaberler() {
                 <div style={{ color: "#c9a96e", fontWeight: "900", fontSize: "12px" }}>#{selectedNews.tagLabel} • {getRelativeTime(selectedNews.timestamp)}</div>
                 <h2 style={{ fontFamily: "'Playfair Display'", fontSize: "32px", color: "#fff", margin: "15px 0" }}>{selectedNews.baslik}</h2>
                 <p style={{ color: "#8a9ab0", lineHeight: "1.8", fontSize: "18px" }}>{selectedNews.detay}</p>
-                <a href={selectedNews.url} target="_blank" rel="noreferrer" style={{ background: "#c9a96e", color: "#0d1424", padding: "12px 30px", textDecoration: "none", fontWeight: "bold", borderRadius: "4px", display: "inline-block", marginTop: "20px" }}>KAYNAĞA GİT ↗</a>
+                <a href={selectedNews.url} target="_blank" rel="noreferrer" style={{ background: "#c9a96e", color: "#0d1424", padding: "12px 30px", textDecoration: "none", fontWeight: "bold", borderRadius: "4px", display: "inline-block", marginTop: "20px" }}>GO TO SOURCE ↗</a>
               </>
             )}
             {modalType === 'about' && (
               <>
-                <h2 style={{ color: "#c9a96e", fontFamily: "'Playfair Display'" }}>HAKKIMIZDA</h2>
-                <p style={{ lineHeight: "1.8", color: "#8a9ab0" }}>World Windows, küresel finans, jeopolitik ve ekonomi haberlerini saniyeler içinde tarayan profesyonel bir haber terminalidir. Amacımız, karmaşık haber akışını tek bir ekranda, en saf ve hızlı haliyle sunmaktır. Kaynaklarımız arasında Reuters, FT, WSJ ve Bloomberg gibi dev medya kuruluşları yer almaktadır.</p>
+                <h2 style={{ color: "#c9a96e", fontFamily: "'Playfair Display'" }}>ABOUT US</h2>
+                <p style={{ lineHeight: "1.8", color: "#8a9ab0" }}>World Windows is a professional news terminal that scans global finance, geopolitics, and economy news in seconds. Our goal is to present the complex news flow on a single screen in its purest and fastest form. Our sources include media giants such as Reuters, FT, WSJ, and Bloomberg.</p>
               </>
             )}
             {modalType === 'privacy' && (
               <>
-                <h2 style={{ color: "#c9a96e", fontFamily: "'Playfair Display'" }}>GİZLİLİK POLİTİKASI</h2>
-                <p style={{ lineHeight: "1.8", color: "#8a9ab0" }}>Kullanıcı verilerinizin gizliliği bizim için önemlidir. Sitemiz, kullanıcı deneyimini artırmak ve reklam hizmetleri sunmak amacıyla çerezler (cookies) kullanmaktadır. Üçüncü taraf reklam sağlayıcılar (Google AdSense gibi), ilgi alanlarınıza göre reklam göstermek için çerezleri kullanabilir. Sitemizi kullanarak bu çerez kullanımını kabul etmiş sayılırsınız.</p>
+                <h2 style={{ color: "#c9a96e", fontFamily: "'Playfair Display'" }}>PRIVACY POLICY</h2>
+                <p style={{ lineHeight: "1.8", color: "#8a9ab0" }}>The privacy of your user data is important to us. Our site uses cookies to enhance user experience and serve advertising. Third-party ad vendors (like Google AdSense) may use cookies to serve ads based on your interests. By using our site, you consent to this cookie usage.</p>
               </>
             )}
             {modalType === 'contact' && (
               <>
-                <h2 style={{ color: "#c9a96e", fontFamily: "'Playfair Display'" }}>İLETİŞİM</h2>
-                <p style={{ lineHeight: "1.8", color: "#8a9ab0" }}>Sorularınız, iş birlikleri veya reklam teklifleri için bize aşağıdaki e-posta adresi üzerinden ulaşabilirsiniz:</p>
+                <h2 style={{ color: "#c9a96e", fontFamily: "'Playfair Display'" }}>CONTACT</h2>
+                <p style={{ lineHeight: "1.8", color: "#8a9ab0" }}>For your questions, collaborations, or advertising proposals, you can reach us via the email address below:</p>
                 <h3 style={{ color: "#fff" }}>iletisim@worldwindows.network</h3>
               </>
             )}
@@ -212,9 +212,9 @@ export default function GlobalHaberler() {
       <footer className="footer">
         <div style={{ color: "#c9a96e", fontWeight: "900", marginBottom: "20px" }}>WORLD WINDOWS</div>
         <div>
-          <span className="footer-link" onClick={() => setModalType('about')}>HAKKIMIZDA</span>
-          <span className="footer-link" onClick={() => setModalType('privacy')}>GİZLİLİK POLİTİKASI</span>
-          <span className="footer-link" onClick={() => setModalType('contact')}>İLETİŞİM</span>
+          <span className="footer-link" onClick={() => setModalType('about')}>ABOUT US</span>
+          <span className="footer-link" onClick={() => setModalType('privacy')}>PRIVACY POLICY</span>
+          <span className="footer-link" onClick={() => setModalType('contact')}>CONTACT</span>
         </div>
         <div style={{ color: "#3a5278", fontSize: "10px", marginTop: "30px" }}>© 2026 World Windows Terminal. All Rights Reserved.</div>
       </footer>
