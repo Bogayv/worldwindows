@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, memo, useMemo } from "react";
 
 const GLOBAL_TAGS = [
-  { id: "all", label: "TÜMÜ", urls: ["http://feeds.bbci.co.uk/news/world/rss.xml", "https://www.theguardian.com/world/rss", "https://rss.nytimes.com/services/xml/rss/nyt/World.xml", "https://www.reutersagency.com/feed/"]},
+  { id: "all", label: "TÜMÜ", urls: ["https://www.reutersagency.com/feed/", "http://feeds.bbci.co.uk/news/world/rss.xml", "https://www.theguardian.com/world/rss", "https://rss.nytimes.com/services/xml/rss/nyt/World.xml"]},
   { id: "ekonomi", label: "EKONOMİ/FT", urls: ["https://www.ft.com/?format=rss", "https://www.economist.com/sections/economics/rss.xml", "https://www.wsj.com/xml/rss/3_7014.xml", "https://www.forbes.com/economics/feed/"]},
   { id: "finans", label: "FİNANS/WSJ", urls: ["https://www.wsj.com/xml/rss/3_7031.xml", "https://www.cnbc.com/id/10000664/device/rss/rss.html", "https://www.ft.com/markets?format=rss"]},
   { id: "jeopolitik", label: "JEOPOLİTİK", urls: ["https://www.theguardian.com/world/rss", "https://www.aljazeera.com/xml/rss/all.xml", "https://www.independent.co.uk/news/world/rss"]},
@@ -67,51 +67,40 @@ export default function GlobalHaberler() {
 
   async function fetchCollectiveNews() {
     setLoading(true);
-    try {
-      const allFetchedNews = [];
-      const fetchPromises = activeTag.urls.map(async (url) => {
-        // ÇOKLU TÜNEL SİSTEMİ: Bir tünel hata verirse diğeri denenecek
-        const primaryUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(url)}&api_key=oyncyf0mgh8v7e5lq9w5z9yqyv8u78moxg8p9r9j`;
+    const allFetchedNews = [];
+    
+    for (const url of activeTag.urls) {
+      try {
+        // DOĞRUDAN API ERİŞİMİ (TÜNEL YOK - API KEY VAR)
+        const fetchUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(url)}&api_key=oyncyf0mgh8v7e5lq9w5z9yqyv8u78moxg8p9r9j&nocache=${Date.now()}`;
+        const res = await fetch(fetchUrl);
+        const data = await res.json();
         
-        try {
-          // 1. Tünel (CORS Proxy)
-          const res = await fetch(`https://corsproxy.io/?${encodeURIComponent(primaryUrl)}`);
-          const data = await res.json();
-          if (data.status === "ok") return processItems(data);
-          throw new Error("Proxy 1 Fail");
-        } catch (e) {
-          try {
-            // 2. Tünel (Alternative Proxy)
-            const res = await fetch(primaryUrl);
-            const data = await res.json();
-            if (data.status === "ok") return processItems(data);
-          } catch (e2) { return []; }
+        if (data.status === "ok" && data.items) {
+          const items = data.items.map(item => ({
+            id: item.guid || item.link,
+            baslik: item.title,
+            ozet: item.description?.replace(/<[^>]*>?/gm, '').slice(0, 180) + "...",
+            detay: item.content?.replace(/<[^>]*>?/gm, '') || item.description?.replace(/<[^>]*>?/gm, ''),
+            kaynak: data.feed.title || "Global Intel",
+            url: item.link,
+            img: item.enclosure?.link || item.thumbnail || `https://picsum.photos/seed/${encodeURIComponent(item.title.slice(0,5))}/800/450`,
+            tagLabel: activeTag.label,
+            tagId: activeTag.id,
+            timestamp: new Date(item.pubDate).getTime()
+          }));
+          allFetchedNews.push(...items);
         }
-      });
+      } catch (e) {
+        console.error("Fetch failed for:", url);
+      }
+    }
 
-      const results = await Promise.all(fetchPromises);
-      results.forEach(batch => { if(batch) allFetchedNews.push(...batch); });
-      
-      setNewsPool(prev => {
-        const combined = [...allFetchedNews, ...prev];
-        return combined.filter((v, i, a) => a.findIndex(t => t.baslik === v.baslik) === i);
-      });
-    } catch (e) { console.error("Sync Error"); } finally { setLoading(false); }
-  }
-
-  function processItems(data) {
-    return data.items.map(item => ({
-      id: item.guid || item.link,
-      baslik: item.title,
-      ozet: item.description?.replace(/<[^>]*>?/gm, '').slice(0, 180) + "...",
-      detay: item.content?.replace(/<[^>]*>?/gm, '') || item.description?.replace(/<[^>]*>?/gm, ''),
-      kaynak: data.feed.title || "Global",
-      url: item.link,
-      img: item.enclosure?.link || item.thumbnail || `https://picsum.photos/seed/${encodeURIComponent(item.title.slice(0,5))}/800/450`,
-      tagLabel: activeTag.label,
-      tagId: activeTag.id,
-      timestamp: new Date(item.pubDate).getTime()
-    }));
+    setNewsPool(prev => {
+      const combined = [...allFetchedNews, ...prev];
+      return combined.filter((v, i, a) => a.findIndex(t => t.baslik === v.baslik) === i);
+    });
+    setLoading(false);
   }
 
   const displayData = useMemo(() => {
@@ -121,56 +110,44 @@ export default function GlobalHaberler() {
   }, [newsPool, activeTag]);
 
   return (
-    <div style={{ minHeight: "100vh", background: "#080c14", color: "#e8e6e0", fontFamily: "'Georgia', serif", overflowX: "hidden" }}>
+    <div style={{ minHeight: "100vh", background: "#080c14", color: "#e8e6e0", fontFamily: "'Source Sans 3', sans-serif", overflowX: "hidden" }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Source+Sans+3:wght@400;700&display=swap');
         .tag-bar { display: flex; gap: 8px; overflow-x: auto; padding: 12px 32px; background: #0d1424; border-bottom: 1px solid #1e2d4a; position: sticky; top: 0; z-index: 100; }
         .tag-pill { padding: 6px 16px; background: #080c14; border: 1px solid #1e2d4a; border-radius: 4px; color: #4a6080; font-size: 10px; font-weight: 900; cursor: pointer; white-space: nowrap; transition: 0.2s; }
         .tag-pill.active { background: #c9a96e; border-color: #c9a96e; color: #0d1424; }
-        .news-slider { display: flex; gap: 24px; overflow-x: auto; padding: 20px 32px 40px; }
+        .news-slider { display: flex; gap: 24px; overflow-x: auto; padding: 20px 32px 40px; scroll-behavior: smooth; }
         .news-card { min-width: 420px; max-width: 420px; background: #0d1424; border: 1px solid #1e2d4a; border-radius: 12px; cursor: pointer; overflow: hidden; position: relative; }
         .news-card img { width: 100%; height: 240px; object-fit: cover; border-bottom: 3px solid #c9a96e; }
         .time-badge { position: absolute; top: 15px; left: 15px; background: rgba(0,0,0,0.85); padding: 5px 12px; border-radius: 4px; font-size: 11px; font-weight: 700; color: #c9a96e; border: 1px solid #c9a96e; z-index: 2; }
         .archive-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 20px; padding: 0 32px 60px; }
         .archive-card { background: #0d1424; border: 1px solid #1e2d4a; border-radius: 10px; cursor: pointer; padding: 25px; border-left: 4px solid #1e2d4a; }
-        .close-btn { position: fixed; top: 30px; right: 30px; background: #c9a96e; color: #080c14; border: none; width: 45px; height: 45px; border-radius: 50%; cursor: pointer; font-size: 24px; font-weight: bold; z-index: 20000; display: flex; align-items: center; justify-content: center; }
+        .close-btn { position: fixed; top: 30px; right: 30px; background: #c9a96e; color: #0d1424; border: none; width: 45px; height: 45px; border-radius: 50%; cursor: pointer; font-size: 24px; font-weight: bold; z-index: 20000; display: flex; align-items: center; justify-content: center; }
         .footer { background: #0d1424; padding: 40px 32px; border-top: 1px solid #1e2d4a; text-align: center; }
-        .footer-link { color: #4a6080; text-decoration: none; margin: 0 15px; font-size: 12px; font-weight: bold; cursor: pointer; transition: 0.2s; }
-        .footer-link:hover { color: #c9a96e; }
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(8,12,20,0.98); backdrop-filter: blur(15px); z-index: 10000; display: flex; justify-content: center; align-items: center; padding: 20px; }
-        .modal-content { background: #0d1424; border: 1px solid #c9a96e; border-radius: 12px; max-width: 850px; width: 100%; max-height: 90vh; overflow-y: auto; position: relative; padding: 40px; }
+        .footer-link { color: #4a6080; text-decoration: none; margin: 0 15px; font-size: 12px; font-weight: bold; cursor: pointer; }
       `}</style>
 
       {modalType && (
-        <div className="modal-overlay" onClick={() => setModalType(null)}>
+        <div style={{ position: "fixed", top: 0, left: 0, width: "100%", height: "100%", background: "rgba(8,12,20,0.98)", backdropFilter: "blur(15px)", zIndex: 10000, display: "flex", justifyContent: "center", alignItems: "center", padding: "20px" }} onClick={() => setModalType(null)}>
           <button className="close-btn" onClick={() => setModalType(null)}>✕</button>
-          <div className="modal-content" onClick={e => e.stopPropagation()}>
+          <div style={{ background: "#0d1424", border: "1px solid #c9a96e", borderRadius: "12px", maxWidth: "850px", width: "100%", maxHeight: "90vh", overflowY: "auto", position: "relative", padding: "40px" }} onClick={e => e.stopPropagation()}>
             {modalType === 'news' && selectedNews && (
               <>
                 <img src={selectedNews.img} style={{ width: "calc(100% + 80px)", margin: "-40px -40px 20px", height: "350px", objectFit: "cover", borderBottom: "2px solid #c9a96e" }} />
                 <div style={{ color: "#c9a96e", fontWeight: "900", fontSize: "12px" }}>#{selectedNews.tagLabel} • {getRelativeTime(selectedNews.timestamp)}</div>
                 <h2 style={{ fontFamily: "'Playfair Display'", fontSize: "32px", color: "#fff", margin: "15px 0" }}>{selectedNews.baslik}</h2>
                 <p style={{ color: "#8a9ab0", lineHeight: "1.8", fontSize: "18px" }}>{selectedNews.detay}</p>
-                <a href={selectedNews.url} target="_blank" rel="noreferrer" style={{ background: "#c9a96e", color: "#0d1424", padding: "12px 30px", textDecoration: "none", fontWeight: "bold", borderRadius: "4px", display: "inline-block", marginTop: "20px" }}>KAYNAĞA GİT ↗</a>
+                <a href={selectedNews.url} target="_blank" rel="noreferrer" style={{ background: "#c9a96e", color: "#0d1424", padding: "12px 30px", textDecoration: "none", fontWeight: "bold", borderRadius: "4px", display: "inline-block", marginTop: "20px" }}>FULL SOURCE ↗</a>
               </>
             )}
             {modalType === 'about' && (
-              <>
-                <h2 style={{ color: "#c9a96e", fontFamily: "'Playfair Display'" }}>ABOUT</h2>
-                <p style={{ lineHeight: "1.8", color: "#8a9ab0" }}>WorldWindows.network is a professional real-time news terminal for global finance and geopolitics.</p>
-              </>
+              <><h2 style={{ color: "#c9a96e", fontFamily: "'Playfair Display'" }}>ABOUT</h2><p style={{ color: "#8a9ab0", lineHeight: "1.8" }}>World Windows Network provides real-time global intelligence.</p></>
             )}
             {modalType === 'privacy' && (
-              <>
-                <h2 style={{ color: "#c9a96e", fontFamily: "'Playfair Display'" }}>PRIVACY</h2>
-                <p style={{ lineHeight: "1.8", color: "#8a9ab0" }}>We use cookies to enhance your experience and for ad services.</p>
-              </>
+              <><h2 style={{ color: "#c9a96e", fontFamily: "'Playfair Display'" }}>PRIVACY</h2><p style={{ color: "#8a9ab0", lineHeight: "1.8" }}>We use cookies to improve your experience.</p></>
             )}
             {modalType === 'contact' && (
-              <>
-                <h2 style={{ color: "#c9a96e", fontFamily: "'Playfair Display'" }}>CONTACT</h2>
-                <h3 style={{ color: "#fff" }}>iletisim@worldwindows.network</h3>
-              </>
+              <><h2 style={{ color: "#c9a96e", fontFamily: "'Playfair Display'" }}>CONTACT</h2><h3 style={{ color: "#fff" }}>iletisim@worldwindows.network</h3></>
             )}
           </div>
         </div>
@@ -232,9 +209,9 @@ export default function GlobalHaberler() {
       <footer className="footer">
         <div style={{ color: "#c9a96e", fontWeight: "900", marginBottom: "20px" }}>WORLDWINDOWS.NETWORK</div>
         <div>
-          <span className="footer-link" onClick={() => setModalType('about')}>ABOUT</span>
-          <span className="footer-link" onClick={() => setModalType('privacy')}>PRIVACY</span>
-          <span className="footer-link" onClick={() => setModalType('contact')}>CONTACT</span>
+          <span className="footer-link" style={{cursor:'pointer'}} onClick={() => setModalType('about')}>ABOUT</span>
+          <span className="footer-link" style={{cursor:'pointer', marginLeft:'15px'}} onClick={() => setModalType('privacy')}>PRIVACY</span>
+          <span className="footer-link" style={{cursor:'pointer', marginLeft:'15px'}} onClick={() => setModalType('contact')}>CONTACT</span>
         </div>
         <div style={{ color: "#3a5278", fontSize: "10px", marginTop: "30px" }}>© 2026 World Windows Network. All Rights Reserved.</div>
       </footer>
