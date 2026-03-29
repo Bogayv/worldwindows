@@ -85,20 +85,21 @@ export default function GlobalHaberler() {
   useEffect(() => {
     document.title = "WORLD WINDOWS";
     
-    // KESIN ÇÖZÜM: GOOGLE BALONCUKLARINI SİLEN BEKÇİ
+    // GOOGLE BALONCUKLARINI SİLEN BEKÇİ (MutationObserver)
     const observer = new MutationObserver(() => {
-      const targets = ['.goog-te-balloon-frame', '.goog-te-balloon-wrapper', '.goog-te-menu-frame', '.goog-tooltip', '#goog-gt-tt', '.goog-te-spinner-pos', '.goog-te-banner-frame'];
-      targets.forEach(selector => {
-        const elements = document.querySelectorAll(selector);
-        elements.forEach(el => el.remove());
-      });
+      const tooltips = document.querySelectorAll('.goog-te-balloon-frame, .goog-te-balloon-wrapper, .goog-te-menu-frame, .goog-tooltip, #goog-gt-tt');
+      tooltips.forEach(t => t.remove());
     });
     observer.observe(document.body, { childList: true, subtree: true });
 
     const initTranslate = () => {
       if (!window.googleTranslateElementInit) {
         window.googleTranslateElementInit = () => {
-          new window.google.translate.TranslateElement({ pageLanguage: 'en', includedLanguages: 'en,tr,es,de,fr,ar,zh-CN,ru,hi,ja,ko,th,kk,az,el,pt,cs,da,nl', autoDisplay: false }, 'google_translate_element');
+          new window.google.translate.TranslateElement({ 
+            pageLanguage: 'en', 
+            includedLanguages: 'en,tr,es,de,fr,ar,zh-CN,ru,hi,ja,ko,th,kk,az,el,pt,cs,da,nl', 
+            autoDisplay: false 
+          }, 'google_translate_element');
         };
       }
       if (!document.getElementById('google-translate-script')) {
@@ -109,6 +110,7 @@ export default function GlobalHaberler() {
         document.body.appendChild(script);
       }
     };
+
     initTranslate();
 
     const styleInterval = setInterval(() => {
@@ -124,15 +126,22 @@ export default function GlobalHaberler() {
              combo.value = "en";
              combo.dispatchEvent(new Event('change'));
           }
-          if (combo.options[0] && combo.options[0].value === "") { combo.options[0].textContent = "---"; }
+          if (combo.options[0] && combo.options[0].value === "") {
+            combo.options[0].textContent = "---";
+          }
         }
-        combo.style.cssText = "background-color: #c9a96e !important; color: #0d1424 !important; border: none !important; padding: 0px 8px !important; border-radius: 4px !important; font-size: 11px !important; font-weight: 900 !important; font-family: 'Source Sans 3', sans-serif !important; text-transform: uppercase !important; cursor: pointer !important; height: 30px !important; width: 75px !important; outline: none !important; margin: 0 !important; appearance: none !important;";
-      } else { initTranslate(); }
+        combo.style.cssText = "background-color: #c9a96e !important; color: #0d1424 !important; border: none !important; padding: 0px 8px !important; border-radius: 4px !important; font-size: 11px !important; font-weight: 900 !important; font-family: 'Source Sans 3', sans-serif !important; text-transform: uppercase !important; cursor: pointer !important; height: 30px !important; width: 75px !important; outline: none !important; margin: 0 !important; appearance: none !important; -webkit-appearance: none !important;";
+      } else {
+        initTranslate();
+      }
       const gadget = document.querySelector('.goog-te-gadget');
       if(gadget) { gadget.style.cssText = "color: transparent !important; font-size: 0px !important; display: flex !important; align-items: center !important;"; }
     }, 1000);
 
-    return () => { clearInterval(styleInterval); observer.disconnect(); };
+    return () => {
+      clearInterval(styleInterval);
+      observer.disconnect();
+    };
   }, []);
 
   useEffect(() => {
@@ -158,6 +167,7 @@ export default function GlobalHaberler() {
           const items = Array.from(xmlDoc.querySelectorAll("item, entry")).slice(0, 15);
           const feedTitle = xmlDoc.querySelector("channel > title, feed > title")?.textContent || "Global";
           const feedOrigin = new URL(url).origin;
+
           return items.map(item => {
             const title = item.querySelector("title")?.textContent || "News";
             const linkElem = item.querySelector("link");
@@ -199,42 +209,32 @@ export default function GlobalHaberler() {
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,400;1,700&family=Source+Sans+3:wght@400;700&display=swap');
         
-        /* KRITIK: YAZI ETKILEŞIMINI KAPATAN VE BALONCUKLARI YOK EDEN KURALLAR */
+        /* EKSTREM BALONCUK İMHASI */
+        .goog-te-balloon-frame, .goog-te-balloon-wrapper, .goog-te-menu-frame, .goog-tooltip, #goog-gt-tt, .goog-te-spinner-pos {
+          display: none !important; visibility: hidden !important; opacity: 0 !important; pointer-events: none !important;
+        }
         body { top: 0px !important; position: static !important; }
-        .goog-te-balloon-frame, .goog-te-balloon-wrapper, .goog-te-menu-frame, .goog-tooltip, #goog-gt-tt, .goog-te-banner-frame { 
-           display: none !important; visibility: hidden !important; pointer-events: none !important; 
-        }
-        
-        /* Yazıların üzerine gelince baloncuk çıkmaması için etkileşimi kesiyoruz */
-        h1, h2, h3, h4, p, span, font { 
-           pointer-events: none !important; 
-           user-select: none !important;
-           -webkit-user-select: none !important;
-        }
-
-        /* Sadece tıklanması gereken butonlar ve kartlar için etkileşimi açıyoruz */
-        .news-card, .archive-card, .tag-pill, button, a, .close-btn, .footer-link, .goog-te-combo { 
-           pointer-events: auto !important; 
-        }
+        .goog-text-highlight { background-color: transparent !important; border: none !important; box-shadow: none !important; }
+        font { background-color: transparent !important; box-shadow: none !important; }
 
         .radar-container { overflow-x: auto; display: flex; gap: 20px; padding: 20px 32px 40px; -webkit-overflow-scrolling: touch; scroll-snap-type: x mandatory; }
         .radar-container::-webkit-scrollbar { height: 4px; }
         .radar-container::-webkit-scrollbar-thumb { background: #1e2d4a; border-radius: 10px; }
         .news-card { min-width: 400px; max-width: 400px; background: #0d1424; border: 1px solid #1e2d4a; border-radius: 12px; cursor: pointer; overflow: hidden; flex-shrink: 0; scroll-snap-align: start; position: relative; transition: 0.3s; }
         .news-card:hover { border-color: #c9a96e; }
-        .news-card img { width: 100%; height: 220px; object-fit: cover; border-bottom: 3px solid #c9a96e; pointer-events: none; }
-        .time-badge { position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.7); color: #c9a96e; padding: 4px 10px; border-radius: 4px; font-size: 10px; font-weight: bold; border: 1px solid #c9a96e; z-index: 10; pointer-events: none; }
+        .news-card img { width: 100%; height: 220px; object-fit: cover; border-bottom: 3px solid #c9a96e; }
+        .time-badge { position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.7); color: #c9a96e; padding: 4px 10px; border-radius: 4px; font-size: 10px; font-weight: bold; border: 1px solid #c9a96e; z-index: 10; }
         .top-header-container { padding: 20px 32px 5px; display: flex; justify-content: space-between; align-items: center; max-width: 1400px; margin: 0 auto; }
         .tag-bar { display: flex; gap: 8px; overflow-x: auto; padding: 12px 32px; background: #0d1424; border-bottom: 1px solid #1e2d4a; position: sticky; top: 0; z-index: 100; }
         .tag-pill { padding: 6px 16px; background: #080c14; border: 1px solid #1e2d4a; border-radius: 4px; color: #4a6080; font-size: 10px; font-weight: 900; cursor: pointer; white-space: nowrap; }
         .tag-pill.active { background: #c9a96e; color: #0d1424; }
         .archive-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 20px; padding: 32px; max-width: 1400px; margin: 0 auto; }
         .archive-card { background: #0d1424; border: 1px solid #1e2d4a; border-radius: 10px; padding: 25px; border-left: 4px solid #1e2d4a; cursor: pointer; }
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(8,12,20,0.98); z-index: 10000; display: flex; justify-content: center; align-items: center; padding: 20px; pointer-events: auto; }
-        .modal-content { background: #0d1424; border: 1px solid #c9a96e; border-radius: 12px; max-width: 800px; width: 100%; max-height: 90vh; overflow-y: auto; padding: 40px; position: relative; pointer-events: auto; }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(8,12,20,0.98); z-index: 10000; display: flex; justify-content: center; align-items: center; padding: 20px; }
+        .modal-content { background: #0d1424; border: 1px solid #c9a96e; border-radius: 12px; max-width: 800px; width: 100%; max-height: 90vh; overflow-y: auto; padding: 40px; position: relative; }
         .close-btn { position: absolute; top: 15px; right: 15px; background: #c9a96e; border: none; width: 35px; height: 35px; border-radius: 50%; cursor: pointer; font-weight: 900; }
         .header-title { font-family: 'Playfair Display', serif; font-size: 32px; color: #c9a96e; font-weight: 900; margin: 0; }
-        .search-input { background: #080c14; border: 1px solid #c9a96e; color: #e8e6e0; padding: 6px 12px; border-radius: 4px; outline: none; width: 250px; pointer-events: auto !important; }
+        .search-input { background: #080c14; border: 1px solid #c9a96e; color: #e8e6e0; padding: 6px 12px; border-radius: 4px; outline: none; width: 250px; }
         .fiyakali-slogan { font-family: 'Playfair Display', serif; font-style: italic; color: #c9a96e; opacity: 0.9; font-size: 15px; margin-top: 4px; letter-spacing: 0.5px; }
         .footer-link { color: #4a6080; text-decoration: none; margin: 0 10px; font-size: 12px; font-weight: bold; cursor: pointer; }
         @media (max-width: 768px) {
@@ -254,7 +254,7 @@ export default function GlobalHaberler() {
             <div style={{ color: "#c9a96e", fontWeight: "bold", fontSize: "12px" }}>{selectedNews.kaynak.toUpperCase()}</div>
             <h2 style={{ color: "#fff", margin: "15px 0", fontSize: "22px" }}>{selectedNews.baslik}</h2>
             <p style={{ color: "#8a9ab0", lineHeight: "1.6" }}>{selectedNews.detay}</p>
-            <a href={selectedNews.url} target="_blank" rel="noreferrer" style={{ background: "#c9a96e", color: "#0d1424", padding: "12px 25px", textDecoration: "none", fontWeight: "bold", borderRadius: "4px", display: "inline-block", marginTop: "20px", pointerEvents: "auto" }}>GO TO SOURCE ↗</a>
+            <a href={selectedNews.url} target="_blank" rel="noreferrer" style={{ background: "#c9a96e", color: "#0d1424", padding: "12px 25px", textDecoration: "none", fontWeight: "bold", borderRadius: "4px", display: "inline-block", marginTop: "20px" }}>GO TO SOURCE ↗</a>
           </div>
         </div>
       )}
@@ -265,16 +265,16 @@ export default function GlobalHaberler() {
             <button className="close-btn" onClick={() => setModalType(null)}>✕</button>
             <h2 style={{ color: "#c9a96e", fontFamily: "'Playfair Display'" }}>{modalType.toUpperCase()}</h2>
             <p style={{ color: "#8a9ab0", lineHeight: "1.8" }}>
-              {modalType === 'about' && "World Windows is a professional news terminal that scans global finance, geopolitics, and economy news."}
+              {modalType === 'about' && "World Windows is a professional news terminal that scans global finance, geopolitics, and economy news. Our goal is to present the complex news flow on a single screen in its purest and fastest form."}
               {modalType === 'contact' && "Email: worldwindows.network@gmail.com"}
-              {modalType === 'privacy' && "We value your privacy."}
+              {modalType === 'privacy' && "We value your privacy. We use standard browser cookies for analytics and user experience."}
             </p>
             {modalType === 'about' && (
               <div style={{ marginTop: "20px" }}>
                 <h3 style={{ color: "#c9a96e", fontSize: "16px", borderBottom: "1px solid #1e2d4a", paddingBottom: "10px" }}>INTEGRATED GLOBAL SOURCES</h3>
                 <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", marginTop: "15px" }}>
                   {SOURCE_LINKS.map(s => (
-                    <a key={s.name} href={s.url} target="_blank" rel="noreferrer" style={{ color: s.color, textDecoration: "none", background: "#080c14", padding: "6px 12px", borderRadius: "6px", fontSize: "11px", border: "1px solid #1e2d4a", fontWeight: "bold", pointerEvents: "auto" }}>{s.name}</a>
+                    <a key={s.name} href={s.url} target="_blank" rel="noreferrer" style={{ color: s.color, textDecoration: "none", background: "#080c14", padding: "6px 12px", borderRadius: "6px", fontSize: "11px", border: "1px solid #1e2d4a", fontWeight: "bold" }}>{s.name}</a>
                   ))}
                 </div>
               </div>
@@ -292,7 +292,7 @@ export default function GlobalHaberler() {
           <div className="header-right-panel" translate="no" style={{ display: "flex", alignItems: "center", gap: "10px" }}>
              <div id="google_translate_element"></div>
              <div style={{ fontSize: "11px", color: "#c9a96e", fontWeight: "bold" }}>SYNC: {timeLeft}s</div>
-             <button onClick={() => { fetchCollectiveNews(); setTimeLeft(60); }} style={{ background: "#c9a96e", border: "none", padding: "0 12px", height: "30px", borderRadius: "4px", fontWeight: "900", cursor: "pointer", fontSize: "10px", pointerEvents: "auto" }}>SYNC NOW</button>
+             <button onClick={() => { fetchCollectiveNews(); setTimeLeft(60); }} style={{ background: "#c9a96e", border: "none", padding: "0 12px", height: "30px", borderRadius: "4px", fontWeight: "900", cursor: "pointer", fontSize: "10px" }}>SYNC NOW</button>
           </div>
         </div>
         <div className="tag-bar">{GLOBAL_TAGS.map(t => (<div key={t.id} className={`tag-pill ${activeTag.id === t.id ? 'active' : ''}`} onClick={() => setActiveTag(t)}>#{t.label}</div>))}</div>
@@ -306,6 +306,7 @@ export default function GlobalHaberler() {
             <h2 style={{ color: "#c9a96e", fontSize: "16px", fontFamily: "'Playfair Display', serif" }}>ARE YOU READY TO DISCOVER THE WORLD...</h2>
           </div>
         </section>
+
         <div className="radar-container">
           {displayData.radar.map(n => (
             <div key={n.id} className="news-card" onClick={() => { setSelectedNews(n); setModalType('news'); }}>
@@ -318,6 +319,7 @@ export default function GlobalHaberler() {
             </div>
           ))}
         </div>
+
         <div className="archive-grid">
           {displayData.archive.map(n => (
             <div key={n.id} className="archive-card" onClick={() => { setSelectedNews(n); setModalType('news'); }}>
@@ -327,6 +329,7 @@ export default function GlobalHaberler() {
           ))}
         </div>
       </main>
+
       <footer style={{ padding: "40px", textAlign: "center", borderTop: "1px solid #1e2d4a", marginTop: "40px" }}>
         <div style={{ color: "#c9a96e", fontWeight: "900", marginBottom: "20px" }}>WORLD WINDOWS</div>
         <div style={{ display: "flex", justifyContent: "center", flexWrap: "wrap", gap: "10px" }}>
