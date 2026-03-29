@@ -85,9 +85,17 @@ export default function GlobalHaberler() {
   useEffect(() => {
     document.title = "WORLD WINDOWS";
     
+    // GOOGLE BALONCUKLARINI VE BANNER'LARI SİLEN BEKÇİ
     const observer = new MutationObserver(() => {
-      const tooltips = document.querySelectorAll('.goog-te-balloon-frame, .goog-te-balloon-wrapper, .goog-te-menu-frame, .goog-tooltip, #goog-gt-tt, .goog-te-spinner-pos, .goog-te-banner-frame');
-      tooltips.forEach(t => t.remove());
+      const targets = ['.goog-te-balloon-frame', '.goog-te-balloon-wrapper', '.goog-te-menu-frame', '.goog-tooltip', '#goog-gt-tt', '.goog-te-spinner-pos', '.goog-te-banner-frame', 'iframe.goog-te-banner-frame'];
+      targets.forEach(selector => {
+        const elements = document.querySelectorAll(selector);
+        elements.forEach(el => el.remove());
+      });
+      // Google'ın eklediği boşlukları temizle
+      if (document.body.style.top !== "0px") {
+        document.body.style.top = "0px";
+      }
     });
     observer.observe(document.body, { childList: true, subtree: true });
 
@@ -95,16 +103,17 @@ export default function GlobalHaberler() {
       if (!window.googleTranslateElementInit) {
         window.googleTranslateElementInit = () => {
           new window.google.translate.TranslateElement({ 
-            pageLanguage: 'en', 
+            // KRİTİK: autoPageLanguage: true yerine hibrit algılama için boş bırakıyoruz
             includedLanguages: 'en,tr,es,de,fr,ar,zh-CN,ru,hi,ja,ko,th,kk,az,el,pt,cs,da,nl', 
-            autoDisplay: false 
+            autoDisplay: false,
+            multilanguagePage: true // Sayfadaki hem TR hem EN haberleri aynı anda çevirir
           }, 'google_translate_element');
         };
       }
       if (!document.getElementById('google-translate-script')) {
         const script = document.createElement("script");
         script.id = 'google-translate-script';
-        script.src = "//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit&hl=en";
+        script.src = "//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit";
         script.async = true;
         document.body.appendChild(script);
       }
@@ -120,20 +129,17 @@ export default function GlobalHaberler() {
             const enOpt = document.createElement('option'); enOpt.value = 'en'; enOpt.textContent = 'English';
             combo.insertBefore(enOpt, combo.firstChild);
           }
-          // Varsayılan dil boşsa İngilizce yap ama diğer seçimlere engel olma
-          if (combo.value === "" || combo.value === null) {
+          // Default olarak boştaysa İngilizce seç ama kullanıcının seçimini bozma
+          if (combo.value === "" && !combo.dataset.manuallyChanged) {
              combo.value = "en";
              combo.dispatchEvent(new Event('change'));
           }
-          // "Select Language" yazısını tamamen gizle (--- yap)
           if (combo.options[0] && (combo.options[0].value === "" || combo.options[0].textContent.includes('Select'))) {
             combo.options[0].textContent = "LANG";
           }
         }
         combo.style.cssText = "background-color: #c9a96e !important; color: #0d1424 !important; border: none !important; padding: 0px 8px !important; border-radius: 4px !important; font-size: 11px !important; font-weight: 900 !important; font-family: 'Source Sans 3', sans-serif !important; text-transform: uppercase !important; cursor: pointer !important; height: 30px !important; width: 75px !important; outline: none !important; margin: 0 !important; appearance: none !important; -webkit-appearance: none !important;";
       } else { initTranslate(); }
-      const gadget = document.querySelector('.goog-te-gadget');
-      if(gadget) { gadget.style.cssText = "color: transparent !important; font-size: 0px !important; display: flex !important; align-items: center !important;"; }
     }, 1000);
 
     return () => { clearInterval(styleInterval); observer.disconnect(); };
@@ -205,14 +211,16 @@ export default function GlobalHaberler() {
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,400;1,700&family=Source+Sans+3:wght@400;700&display=swap');
         
-        .goog-te-balloon-frame, .goog-te-balloon-wrapper, .goog-te-menu-frame, .goog-tooltip, #goog-gt-tt, .goog-te-banner-frame { 
+        /* TUM ETKILEŞIMLER VE BALONCUKLAR ENGELLENDİ */
+        .goog-te-balloon-frame, .goog-te-balloon-wrapper, .goog-te-menu-frame, .goog-tooltip, #goog-gt-tt, .goog-te-banner-frame, iframe.goog-te-banner-frame { 
            display: none !important; visibility: hidden !important; pointer-events: none !important; 
         }
+        
+        body { top: 0px !important; position: static !important; }
         
         h1, h2, h3, h4, p, span, font { 
            pointer-events: none !important; 
            user-select: none !important;
-           -webkit-user-select: none !important;
         }
 
         .news-card, .archive-card, .tag-pill, button, a, .close-btn, .footer-link, .goog-te-combo { 
