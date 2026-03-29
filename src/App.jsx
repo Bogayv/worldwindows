@@ -16,6 +16,23 @@ const GLOBAL_TAGS = [
 
 const ALL_URLS = Array.from(new Set(GLOBAL_TAGS.flatMap(tag => tag.urls)));
 
+const SOURCE_LINKS = [
+  { name: "BBC News", url: "https://www.bbc.com/news", color: "#EB3323", font: "sans-serif", weight: "900" },
+  { name: "Reuters", url: "https://www.reuters.com", color: "#FF8000", font: "sans-serif", weight: "700" },
+  { name: "The New York Times", url: "https://www.nytimes.com", color: "#E8E6E0", font: "'Playfair Display', serif", weight: "900", style: "italic" },
+  { name: "The Guardian", url: "https://www.theguardian.com", color: "#0582CA", font: "'Playfair Display', serif", weight: "900" },
+  { name: "Financial Times", url: "https://www.ft.com", color: "#FCD0B4", font: "'Playfair Display', serif", weight: "700" },
+  { name: "The Economist", url: "https://www.economist.com", color: "#E3120B", font: "'Playfair Display', serif", weight: "700" },
+  { name: "Forbes", url: "https://www.forbes.com", color: "#E8E6E0", font: "sans-serif", weight: "900" },
+  { name: "CNBC", url: "https://www.cnbc.com", color: "#00ACFF", font: "sans-serif", weight: "900" },
+  { name: "Barron's", url: "https://www.barrons.com", color: "#E8E6E0", font: "'Playfair Display', serif", weight: "900" },
+  { name: "CoinDesk", url: "https://www.coindesk.com", color: "#00D1B2", font: "sans-serif", weight: "900" },
+  { name: "South China Morning Post", url: "https://www.scmp.com", color: "#0082E6", font: "'Playfair Display', serif" },
+  { name: "Nikkei Asia", url: "https://asia.nikkei.com", color: "#FF4A4A", font: "sans-serif" },
+  { name: "Bigpara", url: "https://bigpara.hurriyet.com.tr/", color: "#FF3333", font: "sans-serif", weight: "900" },
+  { name: "Dünya", url: "https://www.dunya.com", color: "#FF3333", font: "'Playfair Display', serif", weight: "900" }
+];
+
 const getRelativeTime = (ts) => {
   const diff = Date.now() - ts;
   const m = Math.floor(diff / 60000);
@@ -58,14 +75,10 @@ export default function GlobalHaberler() {
   const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
-    document.documentElement.lang = "en";
     document.title = "WORLD WINDOWS";
-
-    // FAVICON ZORLAMASI (Eski ikonu silip logoyu mühürler)
+    // Favicon Force
     const link = document.querySelector("link[rel*='icon']") || document.createElement('link');
-    link.type = 'image/jpeg';
-    link.rel = 'shortcut icon';
-    link.href = '/logo.jpeg';
+    link.type = 'image/jpeg'; link.rel = 'shortcut icon'; link.href = '/logo.jpeg';
     document.getElementsByTagName('head')[0].appendChild(link);
 
     window.googleTranslateElementInit = () => {
@@ -109,8 +122,10 @@ export default function GlobalHaberler() {
             const title = item.querySelector("title")?.textContent || "News";
             const linkElem = item.querySelector("link");
             let rawLink = (linkElem?.textContent || linkElem?.getAttribute("href") || "#").trim();
+            
             if (rawLink.startsWith("/")) rawLink = feedOrigin + rawLink;
             if (rawLink.includes('bigpara.com')) rawLink = rawLink.replace('www.bigpara.com', 'bigpara.hurriyet.com.tr');
+
             const desc = item.querySelector("description")?.textContent || item.querySelector("summary")?.textContent || "";
             const cleanDesc = desc.replace(/<[^>]*>?/gm, '');
             let imgUrl = `https://picsum.photos/seed/${encodeURIComponent(title.slice(0,5))}/800/450`;
@@ -159,6 +174,8 @@ export default function GlobalHaberler() {
         .header-title { font-family: 'Playfair Display', serif; font-size: 32px; color: #c9a96e; font-weight: 900; margin: 0; }
         .search-input { background: #080c14; border: 1px solid #c9a96e; color: #e8e6e0; padding: 6px 12px; border-radius: 4px; outline: none; width: 250px; }
         .fiyakali-slogan { font-family: 'Playfair Display', serif; font-style: italic; color: #c9a96e; opacity: 0.9; font-size: 15px; margin-top: 4px; letter-spacing: 0.5px; }
+        .footer-link { color: #4a6080; text-decoration: none; margin: 0 15px; font-size: 12px; font-weight: bold; cursor: pointer; }
+        .footer-link:hover { color: #c9a96e; }
 
         @media (max-width: 768px) {
           .top-header-container { flex-direction: column; align-items: flex-start; padding: 15px 20px; }
@@ -167,7 +184,6 @@ export default function GlobalHaberler() {
           .news-card img { height: 180px; }
           .archive-grid { grid-template-columns: 1fr; padding: 20px; }
           .modal-content { padding: 20px; width: 95%; }
-          .search-input { width: 100%; }
         }
       `}</style>
 
@@ -184,18 +200,42 @@ export default function GlobalHaberler() {
         </div>
       )}
 
+      {modalType === 'about' && (
+        <div className="modal-overlay" onClick={() => setModalType(null)}>
+          <div className="modal-content" onClick={e => e.stopPropagation()}>
+            <button className="close-btn" onClick={() => setModalType(null)}>✕</button>
+            <h2 style={{ color: "#c9a96e", fontFamily: "'Playfair Display'" }}>ABOUT US</h2>
+            <p style={{ lineHeight: "1.8", color: "#8a9ab0" }}>World Windows is a professional news terminal that scans global finance, geopolitics, and economy news in seconds. Our goal is to present the complex news flow on a single screen in its purest and fastest form.</p>
+            <h3 style={{ color: "#c9a96e", marginTop: "30px" }}>GLOBAL SOURCES</h3>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "10px", marginTop: "15px" }}>
+              {SOURCE_LINKS.map(s => (
+                <a key={s.name} href={s.url} target="_blank" rel="noreferrer" style={{ color: s.color, textDecoration: "none", background: "#080c14", padding: "8px 12px", borderRadius: "6px", fontSize: "11px", border: "1px solid #1e2d4a" }}>{s.name}</a>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {modalType === 'contact' && (
+        <div className="modal-overlay" onClick={() => setModalType(null)}>
+          <div className="modal-content" onClick={e => e.stopPropagation()}>
+            <button className="close-btn" onClick={() => setModalType(null)}>✕</button>
+            <h2 style={{ color: "#c9a96e", fontFamily: "'Playfair Display'" }}>CONTACT</h2>
+            <p style={{ color: "#8a9ab0" }}>For collaborations and news tips:</p>
+            <h3 style={{ color: "#fff" }}>worldwindows.network@gmail.com</h3>
+          </div>
+        </div>
+      )}
+
       <header style={{ background: "#0d1424" }}>
         <div className="top-header-container">
           <div style={{ display: "flex", alignItems: "center" }}>
              <img src="/logo.jpeg" style={{ width: "50px", height: "50px", marginRight: "12px", objectFit: "contain" }} />
-             <div>
-               <h1 className="header-title">WORLD WINDOWS</h1>
-               <div className="fiyakali-slogan">Global news to understand the world</div>
-             </div>
+             <div><h1 className="header-title">WORLD WINDOWS</h1><div className="fiyakali-slogan">Global news to understand the world</div></div>
           </div>
-          <div className="header-right-panel" style={{ display: "flex", gap: "10px", alignItems: "center" }} translate="no">
+          <div className="header-right-panel" translate="no">
              <div id="google_translate_element"></div>
-             <button onClick={() => fetchCollectiveNews()} style={{ background: "#c9a96e", border: "none", padding: "0 12px", height: "30px", borderRadius: "4px", fontWeight: "900", fontSize: "10px", cursor: "pointer" }}>SYNC NOW</button>
+             <button onClick={() => fetchCollectiveNews()} style={{ background: "#c9a96e", border: "none", padding: "0 12px", height: "30px", borderRadius: "4px", fontWeight: "900", cursor: "pointer", fontSize: "10px" }}>SYNC NOW</button>
           </div>
         </div>
         <div className="tag-bar">{GLOBAL_TAGS.map(t => (<div key={t.id} className={`tag-pill ${activeTag.id === t.id ? 'active' : ''}`} onClick={() => setActiveTag(t)}>#{t.label}</div>))}</div>
@@ -206,9 +246,7 @@ export default function GlobalHaberler() {
         <section style={{ padding: "20px 32px 0", maxWidth: "1400px", margin: "0 auto" }}>
           <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "20px" }}>
             <input type="text" className="search-input" placeholder="Search news..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
-            <h2 style={{ color: "#c9a96e", fontSize: "16px", fontFamily: "'Playfair Display', serif" }}>
-              ARE YOU READY TO DISCOVER THE WORLD...
-            </h2>
+            <h2 style={{ color: "#c9a96e", fontSize: "16px", fontFamily: "'Playfair Display', serif" }}>ARE YOU READY TO DISCOVER THE WORLD...</h2>
           </div>
         </section>
 
@@ -219,7 +257,7 @@ export default function GlobalHaberler() {
                 <img src={n.img} />
                 <div style={{ padding: "15px" }}>
                   <div style={{ color: "#c9a96e", fontWeight: "900", fontSize: "10px" }}>{n.kaynak.toUpperCase()}</div>
-                  <h3 style={{ fontSize: "16px", color: "#e8e6e0", margin: "8px 0 0", lineHeight: "1.3" }}>{n.baslik}</h3>
+                  <h3 style={{ fontSize: "16px", color: "#e8e6e0", margin: "8px 0 0" }}>{n.baslik}</h3>
                 </div>
               </div>
             ))}
@@ -230,15 +268,19 @@ export default function GlobalHaberler() {
           {displayData.archive.map(n => (
             <div key={n.id} className="archive-card" onClick={() => { setSelectedNews(n); setModalType('news'); }}>
               <div style={{ fontSize: "10px", color: "#c9a96e", fontWeight: "900" }}>{n.kaynak.toUpperCase()} • {getRelativeTime(n.timestamp)}</div>
-              <h4 style={{ fontSize: "15px", margin: "8px 0 0", lineHeight: "1.4" }}>{n.baslik}</h4>
+              <h4 style={{ fontSize: "15px", margin: "8px 0 0" }}>{n.baslik}</h4>
             </div>
           ))}
         </div>
       </main>
 
       <footer style={{ padding: "40px", textAlign: "center", borderTop: "1px solid #1e2d4a", marginTop: "40px" }}>
-        <div style={{ color: "#c9a96e", fontWeight: "900" }}>WORLD WINDOWS</div>
-        <div style={{ color: "#3a5278", fontSize: "10px", marginTop: "10px" }}>© 2026 Terminal. All Rights Reserved.</div>
+        <div style={{ color: "#c9a96e", fontWeight: "900", marginBottom: "20px" }}>WORLD WINDOWS</div>
+        <div>
+          <span className="footer-link" onClick={() => setModalType('about')}>ABOUT US</span>
+          <span className="footer-link" onClick={() => setModalType('contact')}>CONTACT</span>
+        </div>
+        <div style={{ color: "#3a5278", fontSize: "10px", marginTop: "20px" }}>© 2026 Terminal. All Rights Reserved.</div>
       </footer>
       <Analytics />
     </div>
