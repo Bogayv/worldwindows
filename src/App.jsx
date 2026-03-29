@@ -97,24 +97,20 @@ export default function GlobalHaberler() {
     script.async = true;
     document.body.appendChild(script);
 
-    // KESİN ÇÖZÜM: 100ms aralıklarla LANG kontrolü
     const styleInterval = setInterval(() => {
       const combo = document.querySelector('.goog-te-combo');
-      if (combo) {
-        if (combo.options && combo.options.length > 0) {
-          // English seçeneği yoksa ekle
+      if (combo && !combo.dataset.hacked) {
+        combo.dataset.hacked = "true";
+        if (combo.options) {
           const hasEnglish = Array.from(combo.options).some(opt => opt.value === 'en');
           if (!hasEnglish) {
             const enOpt = document.createElement('option'); enOpt.value = 'en'; enOpt.textContent = 'English';
             combo.insertBefore(enOpt, combo.firstChild);
           }
-          // HER ZAMAN LANG YAZDIR
-          if (combo.options[0].textContent !== 'LANG') {
-            combo.options[0].textContent = 'LANG';
-          }
+          // SADECE LANG YAZISI KALDI
+          combo.options[0].textContent = 'LANG';
         }
-        // STİLİ HER ZAMAN KORU
-        combo.style.cssText = "background-color: #c9a96e !important; color: #0d1424 !important; border: none !important; padding: 0px 8px !important; border-radius: 4px !important; font-size: 11px !important; font-weight: 900 !important; font-family: 'Source Sans 3', sans-serif !important; text-transform: uppercase !important; cursor: pointer !important; height: 30px !important; width: 75px !important; outline: none !important; margin: 0 !important; appearance: none !important; -webkit-appearance: none !important;";
+        combo.style.cssText = "background-color: #c9a96e !important; color: #0d1424 !important; border: none !important; padding: 0px 8px !important; border-radius: 4px !important; font-size: 11px !important; font-weight: 900 !important; font-family: 'Source Sans 3', sans-serif !important; text-transform: uppercase !important; cursor: pointer !important; height: 30px !important; width: 75px !important; outline: none !important; margin: 0 !important;";
       }
       const gadget = document.querySelector('.goog-te-gadget');
       if(gadget) { gadget.style.cssText = "color: transparent !important; font-size: 0px !important; display: flex !important; align-items: center !important;"; }
@@ -124,7 +120,10 @@ export default function GlobalHaberler() {
 
   useEffect(() => {
     const timer = setInterval(() => {
-      setTimeLeft(prev => { if (prev <= 1) { fetchCollectiveNews(); return 60; } return prev - 1; });
+      setTimeLeft(prev => { 
+        if (prev <= 1) { fetchCollectiveNews(); return 60; } 
+        return prev - 1; 
+      });
       setRefreshBit(b => b + 1);
     }, 1000);
     return () => clearInterval(timer);
@@ -145,6 +144,7 @@ export default function GlobalHaberler() {
           const items = Array.from(xmlDoc.querySelectorAll("item, entry")).slice(0, 15);
           const feedTitle = xmlDoc.querySelector("channel > title, feed > title")?.textContent || "Global";
           const feedOrigin = new URL(url).origin;
+
           return items.map(item => {
             const title = item.querySelector("title")?.textContent || "News";
             const linkElem = item.querySelector("link");
@@ -156,7 +156,16 @@ export default function GlobalHaberler() {
               persistentTimeCache[newsId] = Date.now();
               localStorage.setItem('ww_time_cache', JSON.stringify(persistentTimeCache));
             }
-            return { id: Math.random(), baslik: title, detay: (item.querySelector("description")?.textContent || "").replace(/<[^>]*>?/gm, ''), kaynak: feedTitle.replace(/ - BBC News| \| World/gi, ''), url: rawLink, img: `https://picsum.photos/seed/${encodeURIComponent(title.slice(0,5))}/800/450`, tagId: activeTag.id, timestamp: persistentTimeCache[newsId] };
+            return { 
+              id: Math.random(), 
+              baslik: title, 
+              detay: (item.querySelector("description")?.textContent || "").replace(/<[^>]*>?/gm, ''), 
+              kaynak: feedTitle.replace(/ - BBC News| \| World/gi, ''), 
+              url: rawLink, 
+              img: `https://picsum.photos/seed/${encodeURIComponent(title.slice(0,5))}/800/450`, 
+              tagId: activeTag.id, 
+              timestamp: persistentTimeCache[newsId] 
+            };
           });
         } catch (e) { return []; }
       });
