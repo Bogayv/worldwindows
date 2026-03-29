@@ -56,10 +56,10 @@ export default function GlobalHaberler() {
   const [timeLeft, setTimeLeft] = useState(60);
   const [modalType, setModalType] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const radarRef = useRef(null);
 
   useEffect(() => {
     document.documentElement.lang = "en";
-    document.title = "WORLD WINDOWS | Global News Network";
     window.googleTranslateElementInit = () => {
       new window.google.translate.TranslateElement({
         pageLanguage: 'en',
@@ -72,6 +72,31 @@ export default function GlobalHaberler() {
     script.async = true;
     document.body.appendChild(script);
   }, []);
+
+  // OTOMATIK AKIŞ VE MANUEL KAYDIRMA DENGESİ
+  useEffect(() => {
+    const el = radarRef.current;
+    if (!el) return;
+    let scrollSpeed = 1;
+    let isPaused = false;
+
+    const autoScroll = () => {
+      if (!isPaused) {
+        el.scrollLeft += scrollSpeed;
+        if (el.scrollLeft >= (el.scrollWidth / 2)) {
+          el.scrollLeft = 0;
+        }
+      }
+    };
+
+    const interval = setInterval(autoScroll, 30);
+    el.onmouseenter = () => isPaused = true;
+    el.onmouseleave = () => isPaused = false;
+    el.ontouchstart = () => isPaused = true;
+    el.ontouchend = () => isPaused = false;
+
+    return () => clearInterval(interval);
+  }, [newsPool]);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -105,8 +130,7 @@ export default function GlobalHaberler() {
             const enclosure = item.querySelector("enclosure");
             if (enclosure?.getAttribute("url")) imgUrl = enclosure.getAttribute("url");
             const pubDate = item.querySelector("pubDate")?.textContent || item.querySelector("published")?.textContent;
-            const timestamp = pubDate ? new Date(pubDate).getTime() : Date.now();
-            return { id: Math.random(), baslik: title, detay: cleanDesc, kaynak: feedTitle.replace(/ - BBC News| \| World/gi, ''), url: rawLink, img: imgUrl, tagId: activeTag.id, timestamp: isNaN(timestamp) ? Date.now() : timestamp };
+            return { id: Math.random(), baslik: title, detay: cleanDesc, kaynak: feedTitle.replace(/ - BBC News| \| World/gi, ''), url: rawLink, img: imgUrl, tagId: activeTag.id, timestamp: isNaN(new Date(pubDate).getTime()) ? Date.now() : new Date(pubDate).getTime() };
           });
         } catch (e) { return []; }
       });
@@ -132,213 +156,138 @@ export default function GlobalHaberler() {
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,400;1,700&family=Source+Sans+3:wght@400;700&display=swap');
         
-        @keyframes scrollRadar {
-          0% { transform: translateX(0); }
-          100% { transform: translateX(calc(-444px * 8)); }
+        /* RADAR: MANUEL KAYDIRILABILIR VE AKIŞKAN */
+        .radar-scroll-area { 
+          overflow-x: auto; 
+          display: flex; 
+          gap: 24px; 
+          padding: 20px 32px 40px;
+          scroll-behavior: smooth;
+          -webkit-overflow-scrolling: touch;
         }
-        
-        .radar-wrapper { 
-          overflow: hidden; 
-          width: 100vw; 
-          position: relative; 
-          padding: 20px 0 40px; 
-          display: block;
-        }
-        
-        .radar-inner { 
-          display: flex !important; 
-          flex-direction: row !important;
-          flex-wrap: nowrap !important;
-          width: max-content !important;
-          animation: scrollRadar 80s linear infinite; 
-          will-change: transform;
-        }
-        
-        .radar-wrapper:hover .radar-inner { animation-play-state: paused; }
-        
-        .top-header-container { padding: 20px 32px 5px; }
-        .tag-bar { display: flex; gap: 8px; overflow-x: auto; padding: 12px 32px; background: #0d1424; border-bottom: 1px solid #1e2d4a; position: sticky; top: 0; z-index: 100; }
-        .tag-pill { padding: 6px 16px; background: #080c14; border: 1px solid #1e2d4a; border-radius: 4px; color: #4a6080; font-size: 10px; font-weight: 900; cursor: pointer; white-space: nowrap; transition: 0.2s; }
-        .tag-pill.active { background: #c9a96e; border-color: #c9a96e; color: #0d1424; }
-        
-        .search-header-container { display: flex; align-items: center; gap: 20px; padding: 0 32px; margin-bottom: 15px; flex-wrap: wrap; }
+        .radar-scroll-area::-webkit-scrollbar { display: none; }
         
         .news-card { 
-          min-width: 420px !important; 
-          max-width: 420px !important; 
-          margin-right: 24px;
+          min-width: 420px; 
+          max-width: 420px; 
           background: #0d1424; 
           border: 1px solid #1e2d4a; 
           border-radius: 12px; 
           cursor: pointer; 
           overflow: hidden; 
-          flex-shrink: 0 !important;
-          display: block !important;
+          flex-shrink: 0;
+          transition: transform 0.3s;
         }
-        
+        .news-card:hover { border-color: #c9a96e; transform: translateY(-5px); }
         .news-card img { width: 100%; height: 240px; object-fit: cover; border-bottom: 3px solid #c9a96e; }
-        .time-badge { position: absolute; top: 15px; left: 15px; background: rgba(0,0,0,0.85); padding: 5px 12px; border-radius: 4px; font-size: 11px; font-weight: 700; color: #c9a96e; border: 1px solid #c9a96e; z-index: 2; }
         
-        .archive-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 20px; padding: 0 32px 60px; }
+        .top-header-container { padding: 20px 32px 5px; display: flex; justify-content: space-between; align-items: center; max-width: 1400px; margin: 0 auto; }
+        .tag-bar { display: flex; gap: 8px; overflow-x: auto; padding: 12px 32px; background: #0d1424; border-bottom: 1px solid #1e2d4a; position: sticky; top: 0; z-index: 100; }
+        .tag-pill { padding: 6px 16px; background: #080c14; border: 1px solid #1e2d4a; border-radius: 4px; color: #4a6080; font-size: 10px; font-weight: 900; cursor: pointer; white-space: nowrap; }
+        .tag-pill.active { background: #c9a96e; color: #0d1424; }
+        
+        .archive-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 20px; padding: 32px; max-width: 1400px; margin: 0 auto; }
         .archive-card { background: #0d1424; border: 1px solid #1e2d4a; border-radius: 10px; padding: 25px; border-left: 4px solid #1e2d4a; cursor: pointer; }
         
-        .close-btn { position: fixed; top: 30px; right: 30px; background: #c9a96e; color: #080c14; border: none; width: 45px; height: 45px; border-radius: 50%; cursor: pointer; font-size: 24px; font-weight: bold; z-index: 20000; display: flex; align-items: center; justify-content: center; }
-        .footer { background: #0d1424; padding: 40px 32px; border-top: 1px solid #1e2d4a; text-align: center; }
-        .footer-link { color: #4a6080; text-decoration: none; margin: 0 15px; font-size: 12px; font-weight: bold; cursor: pointer; transition: 0.2s; }
-        .footer-link:hover { color: #c9a96e; }
+        .close-btn { position: fixed; top: 20px; right: 20px; background: #c9a96e; border: none; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; font-weight: bold; z-index: 20000; }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(8,12,20,0.98); z-index: 10000; display: flex; justify-content: center; align-items: center; padding: 20px; }
+        .modal-content { background: #0d1424; border: 1px solid #c9a96e; border-radius: 12px; max-width: 850px; width: 100%; max-height: 90vh; overflow-y: auto; padding: 40px; }
         
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(8,12,20,0.98); backdrop-filter: blur(15px); z-index: 10000; display: flex; justify-content: center; align-items: center; padding: 20px; }
-        .modal-content { background: #0d1424; border: 1px solid #c9a96e; border-radius: 12px; max-width: 850px; width: 100%; max-height: 90vh; overflow-y: auto; position: relative; padding: 40px; }
-        .modal-img { width: calc(100% + 80px); margin: -40px -40px 20px; height: 350px; object-fit: cover; border-bottom: 2px solid #c9a96e; }
-        
-        body { top: 0px !important; position: static !important; margin-top: 0px !important; }
-        .header-title { font-family: 'Playfair Display', serif; font-size: 32px; color: #c9a96e; font-weight: 900; margin: 0; white-space: nowrap; }
-        .header-subtitle { font-family: 'Playfair Display', serif; font-size: 15px; color: #c9a96e; font-style: italic; margin-top: 2px; letter-spacing: 0.5px; opacity: 0.9; }
-        .sync-text { font-size: 12px; color: #c9a96e; font-weight: bold; }
-        .action-btn { background: #c9a96e; color: #0d1424; border: none; padding: 0 20px; border-radius: 4px; font-weight: 900; cursor: pointer; font-size: 11px; height: 30px; display: flex; align-items: center; text-transform: uppercase; }
+        .header-title { font-family: 'Playfair Display', serif; font-size: 32px; color: #c9a96e; font-weight: 900; margin: 0; }
+        .header-subtitle { font-family: 'Playfair Display', serif; font-size: 14px; color: #c9a96e; opacity: 0.8; }
+        .action-btn { background: #c9a96e; color: #0d1424; border: none; padding: 0 15px; border-radius: 4px; font-weight: 900; height: 30px; cursor: pointer; text-transform: uppercase; font-size: 11px; }
 
         .search-input-wrapper { position: relative; display: flex; align-items: center; width: 250px; }
-        .search-input { background: #080c14; border: 1px solid #c9a96e; color: #e8e6e0; padding: 6px 40px 6px 14px; border-radius: 4px; outline: none; font-size: 14px; width: 100%; transition: 0.3s; }
-        .search-input-icon { position: absolute; right: 12px; color: #c9a96e; }
-        .brand-logo-img { width: 75px; height: 75px; object-fit: contain; margin-right: 20px; border-radius: 8px; }
+        .search-input { background: #080c14; border: 1px solid #c9a96e; color: #e8e6e0; padding: 6px 12px; border-radius: 4px; outline: none; width: 100%; font-size: 14px; }
+        .brand-logo-img { width: 65px; height: 65px; object-fit: contain; margin-right: 15px; }
 
         @media (max-width: 768px) {
-          .top-header-container { flex-direction: column; align-items: flex-start !important; padding: 15px 20px 5px; }
-          .header-right-panel { width: 100%; justify-content: space-between; gap: 10px !important; }
-          .search-header-container { flex-direction: column; align-items: flex-start; padding: 0 20px; gap: 15px; }
+          .top-header-container { flex-direction: column; align-items: flex-start; padding: 15px 20px; }
+          .header-right-panel { width: 100%; justify-content: space-between; margin-top: 15px; }
+          .news-card { min-width: 85vw; max-width: 85vw; }
+          .archive-grid { grid-template-columns: 1fr; padding: 20px; }
           .search-input-wrapper { width: 100%; }
-          
-          .news-card { min-width: 85vw !important; max-width: 85vw !important; }
-          @keyframes scrollRadar {
-            0% { transform: translateX(0); }
-            100% { transform: translateX(calc((-85vw - 24px) * 8)); }
-          }
-          .brand-logo-img { width: 55px; height: 55px; }
+          .modal-content { padding: 20px; }
+          .brand-logo-img { width: 50px; height: 50px; }
         }
       `}</style>
 
-      {modalType && (
+      {modalType === 'news' && selectedNews && (
         <div className="modal-overlay" onClick={() => setModalType(null)}>
           <button className="close-btn" onClick={() => setModalType(null)}>✕</button>
           <div className="modal-content" onClick={e => e.stopPropagation()}>
-            {modalType === 'news' && selectedNews && (
-              <>
-                <img src={selectedNews.img} className="modal-img" />
-                <div style={{ color: "#c9a96e", fontWeight: "900", fontSize: "12px" }}>{selectedNews.kaynak.toUpperCase()} • {getRelativeTime(selectedNews.timestamp)}</div>
-                <h2 style={{ fontFamily: "'Playfair Display'", fontSize: "28px", color: "#fff", margin: "15px 0" }}>{selectedNews.baslik}</h2>
-                <p style={{ color: "#8a9ab0", lineHeight: "1.8", fontSize: "16px" }}>{selectedNews.detay}</p>
-                <a href={selectedNews.url} target="_blank" rel="noreferrer" style={{ background: "#c9a96e", color: "#0d1424", padding: "12px 30px", textDecoration: "none", fontWeight: "bold", borderRadius: "4px", display: "inline-block", marginTop: "20px" }}>GO TO SOURCE ↗</a>
-              </>
-            )}
-            {modalType === 'about' && (
-              <>
-                <h2 style={{ color: "#c9a96e", fontFamily: "'Playfair Display'" }}>ABOUT US</h2>
-                <p style={{ lineHeight: "1.8", color: "#8a9ab0", fontSize: "14px" }}>World Windows is a professional news terminal that scans global finance, geopolitics, and economy news in seconds.</p>
-              </>
-            )}
-            {modalType === 'contact' && (
-              <>
-                <h2 style={{ color: "#c9a96e", fontFamily: "'Playfair Display'" }}>CONTACT</h2>
-                <h3 style={{ color: "#fff" }}>worldwindows.network@gmail.com</h3>
-              </>
-            )}
+            <img src={selectedNews.img} style={{ width: "100%", height: "300px", objectFit: "cover", borderRadius: "8px", marginBottom: "20px" }} />
+            <div style={{ color: "#c9a96e", fontWeight: "bold", fontSize: "12px" }}>{selectedNews.kaynak.toUpperCase()}</div>
+            <h2 style={{ color: "#fff", margin: "15px 0" }}>{selectedNews.baslik}</h2>
+            <p style={{ color: "#8a9ab0", lineHeight: "1.8" }}>{selectedNews.detay}</p>
+            <a href={selectedNews.url} target="_blank" rel="noreferrer" style={{ background: "#c9a96e", color: "#0d1424", padding: "12px 25px", textDecoration: "none", fontWeight: "bold", borderRadius: "4px", display: "inline-block", marginTop: "20px" }}>SOURCE ↗</a>
           </div>
         </div>
       )}
 
       <header style={{ background: "#0d1424" }}>
-        <div className="top-header-container" style={{ maxWidth: "1400px", margin: "0 auto", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <div className="header-left-panel" style={{ display: "flex", flexDirection: "row", alignItems: "center" }}>
+        <div className="top-header-container">
+          <div style={{ display: "flex", alignItems: "center" }}>
              <img src="/logo.jpeg" alt="Logo" className="brand-logo-img" />
-             <div>
-               <h1 className="header-title">WORLD WINDOWS</h1>
-               <div className="header-subtitle">Global news to understand the world</div>
-             </div>
+             <div><h1 className="header-title">WORLD WINDOWS</h1><div className="header-subtitle">Global news terminal</div></div>
           </div>
           <div className="header-right-panel" style={{ display: "flex", gap: "10px", alignItems: "center" }} translate="no">
              <div id="google_translate_element"></div>
-             <div className="sync-text" style={{ marginLeft: "5px" }}>SYNC: {timeLeft}s</div>
+             <div style={{ fontSize: "11px", color: "#c9a96e" }}>SYNC: {timeLeft}s</div>
              <button onClick={() => { fetchCollectiveNews(); setTimeLeft(60); }} className="action-btn">SYNC NOW</button>
           </div>
         </div>
-        <div className="tag-bar">
-          {GLOBAL_TAGS.map(t => (
-            <div key={t.id} className={`tag-pill ${activeTag.id === t.id ? 'active' : ''}`} onClick={() => setActiveTag(t)}>#{t.label}</div>
-          ))}
-        </div>
+        <div className="tag-bar">{GLOBAL_TAGS.map(t => (<div key={t.id} className={`tag-pill ${activeTag.id === t.id ? 'active' : ''}`} onClick={() => setActiveTag(t)}>#{t.label}</div>))}</div>
         <TradingViewLiveTicker />
       </header>
 
-      <main style={{ maxWidth: "1400px", margin: "0 auto" }}>
-        <section style={{ padding: "30px 0 10px" }}>
-          <div className="search-header-container">
-            <div style={{ display: "flex", alignItems: "center", gap: "10px", width: "100%" }}>
-              <span style={{ color: "#c9a96e", fontWeight: "900", fontSize: "12px", letterSpacing: "1px" }}>SEARCH:</span>
-              <div className="search-input-wrapper">
-                <input type="text" className="search-input" placeholder="Keyword or source..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
-                <span className="search-input-icon">
-                  <svg width="18" height="18" viewBox="0 0 100 100" fill="none"><path d="M50 10 L90 30 L90 70 L50 90 L10 70 L10 30 Z" stroke="#c9a96e" strokeWidth="6" /><circle cx="50" cy="50" r="15" fill="#c9a96e" /></svg>
-                </span>
-              </div>
+      <main>
+        <section style={{ padding: "20px 32px 0" }}>
+          <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "20px", maxWidth: "1400px", margin: "0 auto" }}>
+            <div className="search-input-wrapper">
+              <input type="text" className="search-input" placeholder="Search..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
             </div>
-            <h2 style={{ fontSize: "20px", color: "#c9a96e", fontFamily: "'Playfair Display'", margin: 0 }}>
-              {activeTag.id === "all" ? "ARE YOU READY TO DISCOVER THE WORLD..." : `LIVE RADAR: ${activeTag.label}`}
-            </h2>
+            <h2 style={{ color: "#c9a96e", fontSize: "18px" }}>{activeTag.id === "all" ? "EXPLORING THE WORLD..." : `LIVE: ${activeTag.label}`}</h2>
           </div>
-          
-          {searchTerm.trim() === "" && displayData.radar.length > 0 && (
-            <div className="radar-wrapper">
-              <div className="radar-inner">
-                {displayData.radar.map(n => (
-                  <div key={n.id} className="news-card" onClick={() => { setSelectedNews(n); setModalType('news'); }}>
-                    <div className="time-badge" translate="no">{getRelativeTime(n.timestamp)}</div>
-                    <img src={n.img} />
-                    <div style={{ padding: "20px 25px" }}>
-                      <div style={{ color: "#c9a96e", fontWeight: "900", fontSize: "10px", marginBottom: "8px" }}>{n.kaynak.toUpperCase()}</div>
-                      <h3 style={{ fontSize: "18px", color: "#e8e6e0", lineHeight: "1.3", margin: 0, fontFamily: "'Playfair Display'" }}>{n.baslik}</h3>
-                    </div>
-                  </div>
-                ))}
-                {/* Sonsuz akış için kopya seti */}
-                {displayData.radar.map(n => (
-                  <div key={n.id + '_clone'} className="news-card" onClick={() => { setSelectedNews(n); setModalType('news'); }}>
-                    <div className="time-badge" translate="no">{getRelativeTime(n.timestamp)}</div>
-                    <img src={n.img} />
-                    <div style={{ padding: "20px 25px" }}>
-                      <div style={{ color: "#c9a96e", fontWeight: "900", fontSize: "10px", marginBottom: "8px" }}>{n.kaynak.toUpperCase()}</div>
-                      <h3 style={{ fontSize: "18px", color: "#e8e6e0", lineHeight: "1.3", margin: 0, fontFamily: "'Playfair Display'" }}>{n.baslik}</h3>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
         </section>
 
-        <section style={{ padding: searchTerm.trim() === "" ? "10px 0 30px" : "0 0 30px 0", borderTop: searchTerm.trim() === "" ? "1px solid #1e2d4a" : "none" }}>
-          <h2 style={{ fontSize: "20px", color: "#8a9ab0", padding: "0 32px", fontFamily: "'Playfair Display'", marginBottom: "20px" }}>
-            {searchTerm.trim() !== "" ? `SEARCH RESULTS (${displayData.archive.length} FOUND)` : "ARCHIVE"}
-          </h2>
-          <div className="archive-grid">
-            {displayData.archive.map(n => (
-              <div key={n.id} className="archive-card" onClick={() => { setSelectedNews(n); setModalType('news'); }}>
-                <div style={{ fontSize: "10px", color: "#c9a96e", marginBottom: "8px", fontWeight: "900" }} translate="no">
-                   {n.kaynak.toUpperCase()} • {getRelativeTime(n.timestamp)}
+        {searchTerm.trim() === "" && displayData.radar.length > 0 && (
+          <div className="radar-scroll-area" ref={radarRef}>
+            {displayData.radar.map(n => (
+              <div key={n.id} className="news-card" onClick={() => { setSelectedNews(n); setModalType('news'); }}>
+                <img src={n.img} />
+                <div style={{ padding: "20px" }}>
+                  <div style={{ color: "#c9a96e", fontWeight: "900", fontSize: "10px" }}>{n.kaynak.toUpperCase()}</div>
+                  <h3 style={{ fontSize: "18px", color: "#e8e6e0", margin: "10px 0 0" }}>{n.baslik}</h3>
                 </div>
-                <h4 style={{ fontSize: "16px", color: "#e8e6e0", lineHeight: "1.4", margin: 0 }}>{n.baslik}</h4>
+              </div>
+            ))}
+            {/* Sonsuz döngü için kopya seti */}
+            {displayData.radar.map(n => (
+              <div key={n.id + '_c'} className="news-card" onClick={() => { setSelectedNews(n); setModalType('news'); }}>
+                <img src={n.img} />
+                <div style={{ padding: "20px" }}>
+                  <div style={{ color: "#c9a96e", fontWeight: "900", fontSize: "10px" }}>{n.kaynak.toUpperCase()}</div>
+                  <h3 style={{ fontSize: "18px", color: "#e8e6e0", margin: "10px 0 0" }}>{n.baslik}</h3>
+                </div>
               </div>
             ))}
           </div>
-        </section>
+        )}
+
+        <div className="archive-grid">
+          {displayData.archive.map(n => (
+            <div key={n.id} className="archive-card" onClick={() => { setSelectedNews(n); setModalType('news'); }}>
+              <div style={{ fontSize: "10px", color: "#c9a96e", fontWeight: "900" }}>{n.kaynak.toUpperCase()} • {getRelativeTime(n.timestamp)}</div>
+              <h4 style={{ fontSize: "16px", margin: "10px 0 0" }}>{n.baslik}</h4>
+            </div>
+          ))}
+        </div>
       </main>
 
-      <footer className="footer">
-        <div style={{ color: "#c9a96e", fontWeight: "900", marginBottom: "20px" }}>WORLD WINDOWS</div>
-        <div>
-          <span className="footer-link" onClick={() => setModalType('about')}>ABOUT US</span>
-          <span className="footer-link" onClick={() => setModalType('contact')}>CONTACT</span>
-        </div>
-        <div style={{ color: "#3a5278", fontSize: "10px", marginTop: "30px" }}>© 2026 World Windows Terminal. All Rights Reserved.</div>
+      <footer style={{ padding: "40px", textAlign: "center", background: "#0d1424", borderTop: "1px solid #1e2d4a" }}>
+        <div style={{ color: "#c9a96e", fontWeight: "900" }}>WORLD WINDOWS</div>
+        <div style={{ color: "#3a5278", fontSize: "10px", marginTop: "10px" }}>© 2026 World Windows Terminal. All Rights Reserved.</div>
       </footer>
       <Analytics />
     </div>
