@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, memo, useMemo } from "react";
-import { Analytics } from "@vercel/analytics/react";
+import { Analytics } from "@vercelanalytics/react";
 
 const GLOBAL_TAGS = [
   { id: "all", label: "ALL", urls: [] },
@@ -93,38 +93,27 @@ export default function GlobalHaberler() {
   useEffect(() => {
     document.title = "WORLD WINDOWS";
     
-    // BANNER VE BALONCUK İMHASI - MUTATION OBSERVER
-    const observer = new MutationObserver(() => {
+    const bannerKiller = () => {
       const targets = [
         '.goog-te-balloon-frame', '.goog-te-balloon-wrapper', 
         '.goog-te-menu-frame', '.goog-tooltip', '#goog-gt-tt', 
         '.goog-te-spinner-pos', '.goog-te-banner-frame', 
-        'iframe.goog-te-banner-frame', '.goog-te-banner'
+        'iframe.goog-te-banner-frame', '.goog-te-banner', '.skiptranslate'
       ];
       targets.forEach(selector => {
-        const elements = document.querySelectorAll(selector);
-        elements.forEach(el => el.remove());
+        document.querySelectorAll(selector).forEach(el => {
+          if (!el.id.includes('google_translate_element')) {
+            el.remove();
+          }
+        });
       });
       
-      // Google'ın eklediği zoraki 'margin-top' ve 'top' stilini ez
-      if (document.body.style.top !== "0px") {
-        document.body.style.top = "0px";
-        document.body.style.setProperty("top", "0px", "important");
-      }
-      if (document.documentElement.style.marginTop !== "0px") {
-        document.documentElement.style.marginTop = "0px";
-        document.documentElement.style.setProperty("margin-top", "0px", "important");
-      }
+      // Zorlayıcı sıfırlama
+      document.body.style.setProperty("top", "0px", "important");
+      document.documentElement.style.setProperty("margin-top", "0px", "important");
+    };
 
-      // Google Translate metnini kısalt
-      const gadgetText = document.querySelector('.goog-te-gadget');
-      if (gadgetText) {
-        const textNode = Array.from(gadgetText.childNodes).find(n => n.nodeType === 3);
-        if (textNode && textNode.textContent.includes('tarafından desteklenmektedir')) {
-          textNode.textContent = ' Google Translate';
-        }
-      }
-    });
+    const observer = new MutationObserver(bannerKiller);
     observer.observe(document.body, { childList: true, subtree: true });
 
     const initTranslate = () => {
@@ -146,6 +135,7 @@ export default function GlobalHaberler() {
     initTranslate();
 
     const styleInterval = setInterval(() => {
+      bannerKiller();
       const combo = document.querySelector('.goog-te-combo');
       if (combo) {
         if (combo.options && combo.options.length > 0) {
@@ -162,11 +152,17 @@ export default function GlobalHaberler() {
             combo.options[0].textContent = "LANG";
           }
         }
-        combo.style.cssText = "background-color: #c9a96e !important; color: #0d1424 !important; border: none !important; padding: 0px 8px !important; border-radius: 4px !important; font-size: 11px !important; font-weight: 900 !important; font-family: 'Source Sans 3', sans-serif !important; text-transform: uppercase !important; cursor: pointer !important; height: 30px !important; width: 75px !important; outline: none !important; margin: 0 !important; appearance: none !important;";
+        combo.style.cssText = "background-color: #c9a96e !important; color: #0d1424 !important; border: none !important; padding: 0px 8px !important; border-radius: 4px !important; font-size: 11px !important; font-weight: 900 !important; font-family: 'Source Sans 3', sans-serif !important; text-transform: uppercase !important; cursor: pointer !important; height: 30px !important; width: 75px !important; outline: none !important; margin: 0 !important; appearance: none !important; -webkit-appearance: none !important;";
       } else { initTranslate(); }
       const gadget = document.querySelector('.goog-te-gadget');
-      if(gadget) { gadget.style.cssText = "color: #4a6080 !important; font-size: 10px !important; font-weight: bold !important; display: flex !important; align-items: center !important;"; }
-    }, 500);
+      if(gadget) { 
+        gadget.style.cssText = "color: #4a6080 !important; font-size: 10px !important; font-weight: bold !important; display: flex !important; align-items: center !important;";
+        const textNode = Array.from(gadget.childNodes).find(n => n.nodeType === 3);
+        if (textNode && textNode.textContent.includes('tarafından desteklenmektedir')) {
+          textNode.textContent = ' Google Translate';
+        }
+      }
+    }, 100);
 
     return () => { clearInterval(styleInterval); observer.disconnect(); };
   }, []);
@@ -235,12 +231,11 @@ export default function GlobalHaberler() {
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,400;1,700&family=Source+Sans+3:wght@400;700&display=swap');
         
-        /* BANNER, BALONCUK VE BEYAZ BANT İMHASI */
-        .goog-te-balloon-frame, .goog-te-balloon-wrapper, .goog-te-menu-frame, .goog-tooltip, #goog-gt-tt, .goog-te-banner-frame, iframe.goog-te-banner-frame, .goog-te-banner { 
+        /* BANNER VE BEYAZ BANT İMHASI (EKSTREM) */
+        .goog-te-balloon-frame, .goog-te-balloon-wrapper, .goog-te-menu-frame, .goog-tooltip, #goog-gt-tt, .goog-te-banner-frame, iframe.goog-te-banner-frame, .goog-te-banner, .skiptranslate { 
            display: none !important; visibility: hidden !important; pointer-events: none !important; 
         }
         
-        /* Sayfa yerleşim kilidi */
         html, body { 
           top: 0px !important; 
           margin-top: 0px !important; 
