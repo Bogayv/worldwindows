@@ -15,6 +15,37 @@ const GLOBAL_TAGS = [
   { id: "kap", label: "KAP & CORP", urls: ["https://www.kap.org.tr/tr/rss", "https://www.paraanaliz.com/feed/", "https://www.dunya.com/rss"]},
 ];
 
+// KAYNAKLARIN KURUMSAL RENK VE FONT LİSTESİ
+const SOURCE_LINKS = [
+  { name: "BBC News", url: "https://www.bbc.com/news", color: "#EB3323", font: "sans-serif", weight: "900" },
+  { name: "Reuters", url: "https://www.reuters.com", color: "#FF8000", font: "sans-serif", weight: "700" },
+  { name: "The New York Times", url: "https://www.nytimes.com", color: "#E8E6E0", font: "'Playfair Display', serif", weight: "900", style: "italic" },
+  { name: "The Guardian", url: "https://www.theguardian.com", color: "#0582CA", font: "'Playfair Display', serif", weight: "900" },
+  { name: "Financial Times", url: "https://www.ft.com", color: "#FCD0B4", font: "'Playfair Display', serif", weight: "700" },
+  { name: "The Wall Street Journal", url: "https://www.wsj.com", color: "#E8E6E0", font: "'Playfair Display', serif", weight: "900" },
+  { name: "The Economist", url: "https://www.economist.com", color: "#E3120B", font: "'Playfair Display', serif", weight: "700" },
+  { name: "Forbes", url: "https://www.forbes.com", color: "#E8E6E0", font: "sans-serif", weight: "900", letterSpacing: "1px" },
+  { name: "CNBC", url: "https://www.cnbc.com", color: "#00ACFF", font: "sans-serif", weight: "900" },
+  { name: "Barron's", url: "https://www.barrons.com", color: "#E8E6E0", font: "'Playfair Display', serif", style: "italic", weight: "900" },
+  { name: "CoinDesk", url: "https://www.coindesk.com", color: "#00D1B2", font: "sans-serif", weight: "900" },
+  { name: "Cointelegraph", url: "https://cointelegraph.com", color: "#FABF2C", font: "sans-serif", weight: "900" },
+  { name: "South China Morning Post", url: "https://www.scmp.com", color: "#0082E6", font: "'Playfair Display', serif", weight: "700" },
+  { name: "Nikkei Asia", url: "https://asia.nikkei.com", color: "#FF4A4A", font: "sans-serif", weight: "700" },
+  { name: "Yonhap News", url: "https://en.yna.co.kr", color: "#4A90E2", font: "sans-serif", weight: "900", style: "italic" },
+  { name: "Al Jazeera", url: "https://www.aljazeera.com", color: "#F9B000", font: "sans-serif", weight: "900" },
+  { name: "Deutsche Welle", url: "https://www.dw.com", color: "#00A5FF", font: "sans-serif", weight: "900" },
+  { name: "The Telegraph", url: "https://www.telegraph.co.uk", color: "#E8E6E0", font: "'Playfair Display', serif", weight: "700" },
+  { name: "Politico", url: "https://www.politico.com", color: "#FF3344", font: "sans-serif", weight: "900" },
+  { name: "Kitco", url: "https://www.kitco.com", color: "#00D46A", font: "sans-serif", weight: "900" },
+  { name: "Investing.com", url: "https://www.investing.com", color: "#F38B00", font: "sans-serif", weight: "900" },
+  { name: "Bloomberg HT", url: "https://www.bloomberght.com", color: "#E8E6E0", font: "sans-serif", weight: "900" },
+  { name: "Yahoo Finance", url: "https://finance.yahoo.com", color: "#A666FA", font: "sans-serif", weight: "900", style: "italic" },
+  { name: "Bigpara", url: "https://www.bigpara.com", color: "#FF3333", font: "sans-serif", weight: "900" },
+  { name: "KAP", url: "https://www.kap.org.tr", color: "#00BFFF", font: "sans-serif", weight: "900" },
+  { name: "Para Analiz", url: "https://www.paraanaliz.com", color: "#E8E6E0", font: "sans-serif", weight: "700" },
+  { name: "Dünya", url: "https://www.dunya.com", color: "#FF3333", font: "'Playfair Display', serif", weight: "900" },
+];
+
 const getRelativeTime = (ts) => {
   const diff = Date.now() - ts;
   const m = Math.floor(diff / 60000);
@@ -205,7 +236,7 @@ export default function GlobalHaberler() {
         .goog-tooltip:hover { display: none !important; }
         .goog-text-highlight { background-color: transparent !important; border: none !important; box-shadow: none !important; }
 
-        /* === BUTON TASARIMLARI VE YENİ EKLENEN BAŞLIKLAR === */
+        /* === BUTON TASARIMLARI VE BAŞLIKLAR === */
         .header-left-panel { display: flex; flex-direction: column; }
         .header-title { font-family: 'Playfair Display', serif; font-size: 32px; color: #c9a96e; font-weight: 900; margin: 0; white-space: nowrap; }
         .header-subtitle { font-family: 'Playfair Display', serif; font-size: 15px; color: #c9a96e; font-style: italic; margin-top: 2px; letter-spacing: 0.5px; opacity: 0.9; }
@@ -246,7 +277,39 @@ export default function GlobalHaberler() {
             {modalType === 'about' && (
               <>
                 <h2 style={{ color: "#c9a96e", fontFamily: "'Playfair Display'" }}>ABOUT US</h2>
-                <p style={{ lineHeight: "1.8", color: "#8a9ab0" }}>World Windows is a professional news terminal that scans global finance, geopolitics, and economy news in seconds. Our goal is to present the complex news flow on a single screen in its purest and fastest form. Our sources include media giants such as Reuters, FT, WSJ, and Bloomberg.</p>
+                <p style={{ lineHeight: "1.8", color: "#8a9ab0" }}>World Windows is a professional news terminal that scans global finance, geopolitics, and economy news in seconds. Our goal is to present the complex news flow on a single screen in its purest and fastest form.</p>
+                
+                {/* --- KURUMSAL RENKLERLE KAYNAKLAR BÖLÜMÜ --- */}
+                <h3 style={{ color: "#c9a96e", fontFamily: "'Playfair Display'", marginTop: "35px", borderBottom: "1px solid #1e2d4a", paddingBottom: "10px", fontSize: "18px" }}>INTEGRATED GLOBAL SOURCES</h3>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "10px", marginTop: "20px" }}>
+                  {SOURCE_LINKS.map(s => (
+                    <a 
+                      key={s.name} 
+                      href={s.url} 
+                      target="_blank" 
+                      rel="noreferrer" 
+                      style={{ 
+                        color: s.color, 
+                        fontFamily: s.font, 
+                        fontWeight: s.weight || "normal", 
+                        fontStyle: s.style || "normal", 
+                        letterSpacing: s.letterSpacing || "normal",
+                        textDecoration: "none", 
+                        background: "#080c14", 
+                        border: "1px solid #1e2d4a", 
+                        padding: "8px 14px", 
+                        borderRadius: "6px",
+                        fontSize: "12px",
+                        transition: "0.2s",
+                        display: "inline-block"
+                      }}
+                      onMouseOver={(e) => { e.target.style.borderColor = s.color; e.target.style.transform = "translateY(-2px)"; }}
+                      onMouseOut={(e) => { e.target.style.borderColor = "#1e2d4a"; e.target.style.transform = "translateY(0)"; }}
+                    >
+                      {s.name}
+                    </a>
+                  ))}
+                </div>
               </>
             )}
             {modalType === 'privacy' && (
