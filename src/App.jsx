@@ -79,33 +79,6 @@ const TradingViewLiveTicker = memo(() => {
   return <div style={{ background: "#000", borderBottom: "1px solid #1e2d4a", minHeight: "46px" }} ref={container}></div>;
 });
 
-// YENİ DEVASA GEOMETRİK 'W' NETWORK LOGOSU
-const GeometricNetworkLogo = () => (
-  <svg width="75" height="75" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ marginRight: '20px' }}>
-    {/* Dış Ağ Bağlantıları */}
-    <path d="M50 5 L85 25 L85 75 L50 95 L15 75 L15 25 Z" stroke="#c9a96e" strokeWidth="1" strokeDasharray="2 2" opacity="0.4" />
-    <path d="M50 5 L50 95 M15 25 L85 75 M15 75 L85 25" stroke="#c9a96e" strokeWidth="0.5" opacity="0.3" />
-    <circle cx="50" cy="5" r="2" fill="#c9a96e" />
-    <circle cx="85" cy="25" r="2" fill="#c9a96e" />
-    <circle cx="85" cy="75" r="2" fill="#c9a96e" />
-    <circle cx="50" cy="95" r="2" fill="#c9a96e" />
-    <circle cx="15" cy="75" r="2" fill="#c9a96e" />
-    <circle cx="15" cy="25" r="2" fill="#c9a96e" />
-    
-    {/* Dominant Kalın W Harfi */}
-    <path d="M10 20 L30 85 L50 45 L70 85 L90 20 L75 20 L60 65 L50 40 L40 65 L25 20 Z" fill="url(#goldGradient)" />
-    <path d="M10 20 L30 85 L50 45 L70 85 L90 20" stroke="#fff" strokeWidth="1" strokeLinejoin="bevel" fill="none" opacity="0.3" />
-    
-    <defs>
-      <linearGradient id="goldGradient" x1="10" y1="20" x2="90" y2="85" gradientUnits="userSpaceOnUse">
-        <stop stopColor="#e3c78a" />
-        <stop offset="0.5" stopColor="#c9a96e" />
-        <stop offset="1" stopColor="#8a7344" />
-      </linearGradient>
-    </defs>
-  </svg>
-);
-
 export default function GlobalHaberler() {
   const [newsPool, setNewsPool] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -301,6 +274,9 @@ export default function GlobalHaberler() {
         .search-input:focus { box-shadow: 0 0 8px rgba(201, 169, 110, 0.4); }
         .search-input-icon { position: absolute; right: 12px; display: flex; align-items: center; justify-content: center; color: #c9a96e; }
 
+        /* YENİ FOTOĞRAF LOGOSU İÇİN STİL */
+        .brand-logo-img { width: 75px; height: 75px; object-fit: contain; margin-right: 20px; border-radius: 8px; }
+
         @media (max-width: 768px) {
           .top-header-container { padding: 15px 20px 5px; flex-direction: column; align-items: flex-start !important; gap: 15px; }
           .header-title { font-size: 26px; }
@@ -322,8 +298,9 @@ export default function GlobalHaberler() {
           .search-input-wrapper { width: 140px; }
           .search-input { padding: 4px 30px 4px 10px; font-size: 12px; }
           .search-input-icon svg { width: 14px; height: 14px; }
-          /* Mobilde logo boyutunu biraz küçültelim ki ekranı boğmasın */
-          .mobile-logo-svg { width: 50px !important; height: 50px !important; margin-right: 15px !important; }
+          
+          /* Mobilde fotoğraf logosu ekranı boğmasın diye küçültülüyor */
+          .brand-logo-img { width: 55px; height: 55px; margin-right: 12px; }
         }
       `}</style>
 
@@ -373,10 +350,10 @@ export default function GlobalHaberler() {
       <header style={{ background: "#0d1424" }}>
         <div className="top-header-container" style={{ maxWidth: "1400px", margin: "0 auto", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div className="header-left-panel" style={{ display: "flex", flexDirection: "row", alignItems: "center" }}>
-             {/* DEVASA GEOMETRİK W NETWORK LOGOSU */}
-             <div className="mobile-logo-svg" style={{ width: '75px', height: '75px', marginRight: '20px' }}>
-                <GeometricNetworkLogo />
-             </div>
+             
+             {/* KOD (SVG) YERİNE DOĞRUDAN SENİN KOYACAĞIN FOTOĞRAFI OKUYAN ETİKET */}
+             <img src="/logo.png" alt="World Windows Logo" className="brand-logo-img" />
+             
              <div>
                <h1 className="header-title">WORLD WINDOWS</h1>
                <div className="header-subtitle">Global news to understand the world</div>
@@ -411,7 +388,6 @@ export default function GlobalHaberler() {
                   onChange={e => setSearchTerm(e.target.value)}
                 />
                 <span className="search-input-icon">
-                  {/* ARAMA KUTUSU İÇİN MİNİ AĞ (NETWORK) İKONU */}
                   <svg width="18" height="18" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M50 10 L90 30 L90 70 L50 90 L10 70 L10 30 Z" stroke="#c9a96e" strokeWidth="6" />
                     <circle cx="50" cy="50" r="15" fill="#c9a96e" />
