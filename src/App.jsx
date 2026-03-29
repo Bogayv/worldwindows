@@ -55,6 +55,22 @@ export default function GlobalHaberler() {
   const [timeLeft, setTimeLeft] = useState(60);
   const [modalType, setModalType] = useState(null);
 
+  // GOOGLE ÇEVİRİ MOTORU BAŞLATICI
+  useEffect(() => {
+    window.googleTranslateElementInit = () => {
+      new window.google.translate.TranslateElement({
+        pageLanguage: 'en',
+        includedLanguages: 'en,tr,es,de,fr,ar,zh-CN,ru', // Stratejik Diller
+        layout: window.google.translate.TranslateElement.InlineLayout.SIMPLE,
+        autoDisplay: false
+      }, 'google_translate_element');
+    };
+    const script = document.createElement("script");
+    script.src = "//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit";
+    script.async = true;
+    document.body.appendChild(script);
+  }, []);
+
   useEffect(() => {
     const timer = setInterval(() => {
       setTimeLeft(prev => {
@@ -153,6 +169,13 @@ export default function GlobalHaberler() {
         .footer-link:hover { color: #c9a96e; }
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(8,12,20,0.98); backdrop-filter: blur(15px); z-index: 10000; display: flex; justify-content: center; align-items: center; padding: 20px; }
         .modal-content { background: #0d1424; border: 1px solid #c9a96e; border-radius: 12px; max-width: 850px; width: 100%; max-height: 90vh; overflow-y: auto; position: relative; padding: 40px; }
+        
+        /* GOOGLE TRANSLATE STYLING HACKS */
+        .goog-te-banner-frame.skiptranslate { display: none !important; } 
+        body { top: 0px !important; } 
+        #google_translate_element select { background: #080c14; color: #c9a96e; border: 1px solid #c9a96e; padding: 4px 8px; border-radius: 4px; font-size: 10px; font-weight: bold; cursor: pointer; outline: none; font-family: 'Source Sans 3', sans-serif; text-transform: uppercase; }
+        .goog-logo-link { display: none !important; }
+        .goog-te-gadget { color: transparent !important; margin-bottom: -15px; }
       `}</style>
 
       {/* MODAL SYSTEM */}
@@ -196,6 +219,10 @@ export default function GlobalHaberler() {
         <div style={{ maxWidth: "1400px", margin: "0 auto", padding: "20px 32px 5px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <h1 style={{ fontFamily: "'Playfair Display'", fontSize: "32px", color: "#c9a96e", fontWeight: "900", margin: 0 }}>WORLD WINDOWS</h1>
           <div style={{ display: "flex", gap: "20px", alignItems: "center" }} translate="no">
+             
+             {/* GOOGLE ÇEVİRİ WIDGET'I BURADA */}
+             <div id="google_translate_element"></div>
+
              <div style={{ fontSize: "12px", color: "#c9a96e", fontWeight: "bold" }}>SYNC: {timeLeft}s</div>
              <button onClick={() => { fetchCollectiveNews(); setTimeLeft(60); }} style={{ background: "#c9a96e", color: "#0d1424", border: "none", padding: "8px 20px", borderRadius: "4px", fontWeight: "900", cursor: "pointer", fontSize: "11px" }}>SYNC NOW</button>
           </div>
