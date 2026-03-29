@@ -69,15 +69,16 @@ export default function GlobalHaberler() {
     script.async = true;
     document.body.appendChild(script);
 
-    // KISA "LANG" YAZISI VE TASARIM SABİTLEYİCİ
+    // KISA "EN" YAZISI VE TASARIM SABİTLEYİCİ
     const styleInterval = setInterval(() => {
       const combo = document.querySelector('.goog-te-combo');
       if (combo) {
         if (combo.options && combo.options.length > 0) {
-          if (combo.options[0].text !== 'LANG') {
-            combo.options[0].text = 'LANG';
+          if (combo.options[0].text !== 'EN') {
+            combo.options[0].text = 'EN';
           }
         }
+        combo.style.cssText = "background-color: #c9a96e !important; color: #0d1424 !important; border: none !important; padding: 0px 15px !important; border-radius: 4px !important; font-size: 11px !important; font-weight: 900 !important; font-family: 'Source Sans 3', sans-serif !important; text-transform: uppercase !important; cursor: pointer !important; height: 30px !important; outline: none !important;";
       }
       
       const gadget = document.querySelector('.goog-te-gadget');
@@ -168,8 +169,8 @@ export default function GlobalHaberler() {
   }, [newsPool, activeTag]);
 
   return (
-    // PADDING 30PX'E DÜŞÜRÜLDÜ (3 SATIR)
-    <div style={{ paddingTop: "30px", minHeight: "100vh", background: "#080c14", color: "#e8e6e0", fontFamily: "'Georgia', serif", overflowX: "hidden" }}>
+    // PADDING 40PX'E ÇIKARILDI (4 SATIR)
+    <div style={{ paddingTop: "40px", minHeight: "100vh", background: "#080c14", color: "#e8e6e0", fontFamily: "'Georgia', serif", overflowX: "hidden" }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Source+Sans+3:wght@400;700&display=swap');
         .tag-bar { display: flex; gap: 8px; overflow-x: auto; padding: 12px 32px; background: #0d1424; border-bottom: 1px solid #1e2d4a; position: sticky; top: 0; z-index: 100; }
