@@ -116,6 +116,7 @@ export default function GlobalHaberler() {
 
   async function fetchCollectiveNews() {
     try {
+      const allFetchedNews = [];
       const targetUrls = activeTag.id === "all" ? ALL_URLS : activeTag.urls;
       const fetchPromises = targetUrls.map(async (url) => {
         try {
@@ -124,7 +125,7 @@ export default function GlobalHaberler() {
           const xmlText = await res.text();
           const parser = new DOMParser();
           const xmlDoc = parser.parseFromString(xmlText, "text/xml");
-          const items = Array.from(xmlDoc.querySelectorAll("item, entry")).slice(0, 10); // Her kaynaktan eşit miktar
+          const items = Array.from(xmlDoc.querySelectorAll("item, entry")).slice(0, 15);
           const feedTitle = xmlDoc.querySelector("channel > title, feed > title")?.textContent || "Global";
           const feedOrigin = new URL(url).origin;
 
@@ -141,8 +142,8 @@ export default function GlobalHaberler() {
         } catch (e) { return []; }
       });
       const results = await Promise.all(fetchPromises);
-      const allFetchedNews = results.flat().sort((a, b) => b.timestamp - a.timestamp);
-      setNewsPool(allFetchedNews);
+      const flattened = results.flat().sort((a, b) => b.timestamp - a.timestamp);
+      setNewsPool(flattened);
     } catch (e) {}
   }
 
@@ -152,7 +153,22 @@ export default function GlobalHaberler() {
       filtered = filtered.filter(i => i.baslik.toLowerCase().includes(searchTerm.toLowerCase()));
       return { radar: [], archive: filtered };
     }
-    return { radar: filtered.slice(0, 12), archive: filtered.slice(12, 500) };
+
+    // RADAR İÇİN SİTE BAŞINA MAX 3 HABER KURALI
+    const radar = [];
+    const sourceCount = {};
+    for (const item of filtered) {
+      if (radar.length >= 40) break; // MAKSİMUM 40 HABER
+      const source = item.kaynak;
+      if (!sourceCount[source] || sourceCount[source] < 3) {
+        radar.push(item);
+        sourceCount[source] = (sourceCount[source] || 0) + 1;
+      }
+    }
+
+    // Arşiv, radarda olmayan haberlerden oluşur
+    const archive = filtered.filter(f => !radar.find(r => r.id === f.id));
+    return { radar, archive: archive.slice(0, 500) };
   }, [newsPool, activeTag, searchTerm]);
 
   return (
