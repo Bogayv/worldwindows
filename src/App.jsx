@@ -16,36 +16,6 @@ const GLOBAL_TAGS = [
 
 const ALL_URLS = Array.from(new Set(GLOBAL_TAGS.flatMap(tag => tag.urls)));
 
-const SOURCE_LINKS = [
-  { name: "BBC News", url: "https://www.bbc.com/news", color: "#EB3323", font: "sans-serif", weight: "900" },
-  { name: "Reuters", url: "https://www.reuters.com", color: "#FF8000", font: "sans-serif", weight: "700" },
-  { name: "The New York Times", url: "https://www.nytimes.com", color: "#E8E6E0", font: "'Playfair Display', serif", weight: "900", style: "italic" },
-  { name: "The Guardian", url: "https://www.theguardian.com", color: "#0582CA", font: "'Playfair Display', serif", weight: "900" },
-  { name: "Financial Times", url: "https://www.ft.com", color: "#FCD0B4", font: "'Playfair Display', serif", weight: "700" },
-  { name: "The Wall Street Journal", url: "https://www.wsj.com", color: "#E8E6E0", font: "'Playfair Display', serif", weight: "900" },
-  { name: "The Economist", url: "https://www.economist.com", color: "#E3120B", font: "'Playfair Display', serif", weight: "700" },
-  { name: "Forbes", url: "https://www.forbes.com", color: "#E8E6E0", font: "sans-serif", weight: "900", letterSpacing: "1px" },
-  { name: "CNBC", url: "https://www.cnbc.com", color: "#00ACFF", font: "sans-serif", weight: "900" },
-  { name: "Barron's", url: "https://www.barrons.com", color: "#E8E6E0", font: "'Playfair Display', serif", style: "italic", weight: "900" },
-  { name: "CoinDesk", url: "https://www.coindesk.com", color: "#00D1B2", font: "sans-serif", weight: "900" },
-  { name: "Cointelegraph", url: "https://cointelegraph.com", color: "#FABF2C", font: "sans-serif", weight: "900" },
-  { name: "South China Morning Post", url: "https://www.scmp.com", color: "#0082E6", font: "'Playfair Display', serif", weight: "700" },
-  { name: "Nikkei Asia", url: "https://asia.nikkei.com", color: "#FF4A4A", font: "sans-serif", weight: "700" },
-  { name: "Yonhap News", url: "https://en.yna.co.kr", color: "#4A90E2", font: "sans-serif", weight: "900", style: "italic" },
-  { name: "Al Jazeera", url: "https://www.aljazeera.com", color: "#F9B000", font: "sans-serif", weight: "900" },
-  { name: "Deutsche Welle", url: "https://www.dw.com", color: "#00A5FF", font: "sans-serif", weight: "900" },
-  { name: "The Telegraph", url: "https://www.telegraph.co.uk", color: "#E8E6E0", font: "'Playfair Display', serif", weight: "700" },
-  { name: "Politico", url: "https://www.politico.com", color: "#FF3344", font: "sans-serif", weight: "900" },
-  { name: "Kitco", url: "https://www.kitco.com", color: "#00D46A", font: "sans-serif", weight: "900" },
-  { name: "Investing.com", url: "https://www.investing.com", color: "#F38B00", font: "sans-serif", weight: "900" },
-  { name: "Bloomberg HT", url: "https://www.bloomberght.com", color: "#E8E6E0", font: "sans-serif", weight: "900" },
-  { name: "Yahoo Finance", url: "https://finance.yahoo.com", color: "#A666FA", font: "sans-serif", weight: "900", style: "italic" },
-  { name: "Bigpara", url: "https://bigpara.hurriyet.com.tr/", color: "#FF3333", font: "sans-serif", weight: "900" },
-  { name: "KAP", url: "https://www.kap.org.tr", color: "#00BFFF", font: "sans-serif", weight: "900" },
-  { name: "Para Analiz", url: "https://www.paraanaliz.com", color: "#E8E6E0", font: "sans-serif", weight: "700" },
-  { name: "Dünya", url: "https://www.dunya.com", color: "#FF3333", font: "'Playfair Display', serif", weight: "900" },
-];
-
 const getRelativeTime = (ts) => {
   const diff = Date.now() - ts;
   const m = Math.floor(diff / 60000);
@@ -150,10 +120,7 @@ export default function GlobalHaberler() {
     let filtered = activeTag.id === "all" ? newsPool : newsPool.filter(i => i.tagId === activeTag.id);
     if (searchTerm.trim() !== "") {
       const term = searchTerm.toLowerCase();
-      filtered = filtered.filter(i => 
-        i.baslik.toLowerCase().includes(term) || 
-        i.kaynak.toLowerCase().includes(term)
-      );
+      filtered = filtered.filter(i => i.baslik.toLowerCase().includes(term) || i.kaynak.toLowerCase().includes(term));
       return { radar: [], archive: [...filtered].sort((a,b) => b.timestamp - a.timestamp) };
     }
     const sorted = [...filtered].sort((a, b) => b.timestamp - a.timestamp);
@@ -166,20 +133,27 @@ export default function GlobalHaberler() {
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,400;1,700&family=Source+Sans+3:wght@400;700&display=swap');
         
         @keyframes scrollRadar {
-          0% { transform: translate3d(0, 0, 0); }
-          100% { transform: translate3d(calc(-444px * 8), 0, 0); }
+          0% { transform: translateX(0); }
+          100% { transform: translateX(calc(-444px * 8)); }
         }
-        .radar-wrapper { overflow: hidden; width: 100vw; position: relative; padding: 20px 0 40px; }
         
-        /* KRİTİK DÜZELTME BURADA: flex-wrap: nowrap ve display: flex !important */
-        .radar-inner { 
-          display: flex !important; 
+        .radar-wrapper { 
+          overflow: hidden; 
+          width: 100vw; 
+          position: relative; 
+          padding: 20px 0 40px; 
+          display: block;
+        }
+        
+        .radar-inner { 
+          display: flex !important; 
+          flex-direction: row !important;
           flex-wrap: nowrap !important;
-          gap: 24px; 
-          width: max-content !important; 
-          animation: scrollRadar 80s linear infinite; 
+          width: max-content !important;
+          animation: scrollRadar 80s linear infinite; 
           will-change: transform;
         }
+        
         .radar-wrapper:hover .radar-inner { animation-play-state: paused; }
         
         .top-header-container { padding: 20px 32px 5px; }
@@ -189,12 +163,22 @@ export default function GlobalHaberler() {
         
         .search-header-container { display: flex; align-items: center; gap: 20px; padding: 0 32px; margin-bottom: 15px; flex-wrap: wrap; }
         
-        /* Kart genişliği sabitleniyor */
-        .news-card { min-width: 420px; max-width: 420px; background: #0d1424; border: 1px solid #1e2d4a; border-radius: 12px; cursor: pointer; overflow: hidden; position: relative; transition: 0.3s; flex-shrink: 0; }
-        .news-card:hover { border-color: #c9a96e; transform: translateY(-5px); }
-        .news-card img { width: 100%; height: 240px; object-fit: cover; border-bottom: 3px solid #c9a96e; }
+        .news-card { 
+          min-width: 420px !important; 
+          max-width: 420px !important; 
+          margin-right: 24px;
+          background: #0d1424; 
+          border: 1px solid #1e2d4a; 
+          border-radius: 12px; 
+          cursor: pointer; 
+          overflow: hidden; 
+          flex-shrink: 0 !important;
+          display: block !important;
+        }
         
+        .news-card img { width: 100%; height: 240px; object-fit: cover; border-bottom: 3px solid #c9a96e; }
         .time-badge { position: absolute; top: 15px; left: 15px; background: rgba(0,0,0,0.85); padding: 5px 12px; border-radius: 4px; font-size: 11px; font-weight: 700; color: #c9a96e; border: 1px solid #c9a96e; z-index: 2; }
+        
         .archive-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 20px; padding: 0 32px 60px; }
         .archive-card { background: #0d1424; border: 1px solid #1e2d4a; border-radius: 10px; padding: 25px; border-left: 4px solid #1e2d4a; cursor: pointer; }
         
@@ -224,18 +208,15 @@ export default function GlobalHaberler() {
           .search-header-container { flex-direction: column; align-items: flex-start; padding: 0 20px; gap: 15px; }
           .search-input-wrapper { width: 100%; }
           
-          /* Mobilde de alt alta binmemesi için */
-          .radar-inner { animation-duration: 40s; }
-          .news-card { min-width: 85vw; max-width: 85vw; }
+          .news-card { min-width: 85vw !important; max-width: 85vw !important; }
           @keyframes scrollRadar {
-            0% { transform: translate3d(0, 0, 0); }
-            100% { transform: translate3d(calc((-85vw - 24px) * 8), 0, 0); }
+            0% { transform: translateX(0); }
+            100% { transform: translateX(calc((-85vw - 24px) * 8)); }
           }
           .brand-logo-img { width: 55px; height: 55px; }
         }
       `}</style>
 
-      {/* MODAL SYSTEM */}
       {modalType && (
         <div className="modal-overlay" onClick={() => setModalType(null)}>
           <button className="close-btn" onClick={() => setModalType(null)}>✕</button>
@@ -318,6 +299,7 @@ export default function GlobalHaberler() {
                     </div>
                   </div>
                 ))}
+                {/* Sonsuz akış için kopya seti */}
                 {displayData.radar.map(n => (
                   <div key={n.id + '_clone'} className="news-card" onClick={() => { setSelectedNews(n); setModalType('news'); }}>
                     <div className="time-badge" translate="no">{getRelativeTime(n.timestamp)}</div>
