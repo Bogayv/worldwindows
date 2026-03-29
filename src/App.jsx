@@ -30,8 +30,6 @@ const SOURCE_LINKS = [
   { name: "The Guardian", url: "https://www.theguardian.com", color: "#0582CA" },
   { name: "Forbes", url: "https://www.forbes.com", color: "#E8E6E0" },
   { name: "Barron's", url: "https://www.barrons.com", color: "#E8E6E0" },
-  { name: "Politico", url: "https://www.politico.com", color: "#FF3344" },
-  { name: "Al Jazeera", url: "https://www.aljazeera.com", color: "#F9B000" },
   { name: "Bigpara", url: "https://bigpara.hurriyet.com.tr/", color: "#FF3333" },
   { name: "KAP", url: "https://www.kap.org.tr", color: "#00BFFF" },
 ];
@@ -79,11 +77,7 @@ export default function GlobalHaberler() {
     head.appendChild(link);
 
     window.googleTranslateElementInit = () => {
-      new window.google.translate.TranslateElement({
-        pageLanguage: 'en',
-        includedLanguages: 'en,tr,es,de,fr,ar,zh-CN,ru,hi,ja,ko,th,kk,az,el,pt,cs,da,nl',
-        autoDisplay: false
-      }, 'google_translate_element');
+      new window.google.translate.TranslateElement({ pageLanguage: 'en', includedLanguages: 'en,tr,es,de,fr,ar,zh-CN,ru,hi,ja,ko,th,kk,az,el,pt,cs,da,nl', autoDisplay: false }, 'google_translate_element');
     };
     const script = document.createElement("script");
     script.src = "//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit&hl=en";
@@ -97,13 +91,12 @@ export default function GlobalHaberler() {
         if (combo.options) {
           const hasEnglish = Array.from(combo.options).some(opt => opt.value === 'en');
           if (!hasEnglish) {
-            const enOpt = document.createElement('option');
-            enOpt.value = 'en'; enOpt.textContent = 'English';
+            const enOpt = document.createElement('option'); enOpt.value = 'en'; enOpt.textContent = 'English';
             combo.insertBefore(enOpt, combo.firstChild);
           }
           combo.options[0].textContent = 'LANG';
         }
-        combo.style.cssText = "background-color: #c9a96e !important; color: #0d1424 !important; border: none !important; padding: 0px 8px !important; border-radius: 4px !important; font-size: 11px !important; font-weight: 900 !important; font-family: 'Source Sans 3', sans-serif !important; text-transform: uppercase !important; cursor: pointer !important; height: 30px !important; width: 75px !important; outline: none !important; margin: 0 !important;";
+        combo.style.cssText = "background-color: #c9a96e !important; color: #0d1424 !important; border: none !important; padding: 0px 8px !important; border-radius: 4px !important; font-size: 11px !important; font-weight: 900 !important; cursor: pointer !important; height: 30px !important; width: 75px !important;";
       }
       const gadget = document.querySelector('.goog-te-gadget');
       if(gadget) { gadget.style.cssText = "color: transparent !important; font-size: 0px !important; display: flex !important; align-items: center !important;"; }
@@ -134,7 +127,6 @@ export default function GlobalHaberler() {
           const items = Array.from(xmlDoc.querySelectorAll("item, entry")).slice(0, 15);
           const feedTitle = xmlDoc.querySelector("channel > title, feed > title")?.textContent || "Global";
           const feedOrigin = new URL(url).origin;
-
           return items.map(item => {
             const title = item.querySelector("title")?.textContent || "News";
             const linkElem = item.querySelector("link");
@@ -148,8 +140,7 @@ export default function GlobalHaberler() {
         } catch (e) { return []; }
       });
       const results = await Promise.all(fetchPromises);
-      const flattened = results.flat().sort((a, b) => b.timestamp - a.timestamp);
-      setNewsPool(flattened);
+      setNewsPool(results.flat().sort((a, b) => b.timestamp - a.timestamp));
     } catch (e) {}
   }
 
@@ -162,20 +153,24 @@ export default function GlobalHaberler() {
     const radar = []; const sourceCount = {};
     for (const item of filtered) {
       if (radar.length >= 40) break;
-      const source = item.kaynak;
-      if (!sourceCount[source] || sourceCount[source] < 3) {
-        radar.push(item);
-        sourceCount[source] = (sourceCount[source] || 0) + 1;
+      if (!sourceCount[item.kaynak] || sourceCount[item.kaynak] < 3) {
+        radar.push(item); sourceCount[item.kaynak] = (sourceCount[item.kaynak] || 0) + 1;
       }
     }
-    const archive = filtered.filter(f => !radar.find(r => r.id === f.id));
-    return { radar, archive: archive.slice(0, 500) };
+    return { radar, archive: filtered.filter(f => !radar.find(r => r.id === f.id)).slice(0, 500) };
   }, [newsPool, activeTag, searchTerm]);
 
   return (
     <div style={{ paddingTop: "40px", minHeight: "100vh", background: "#080c14", color: "#e8e6e0", fontFamily: "'Georgia', serif", overflowX: "hidden" }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,400;1,700&family=Source+Sans+3:wght@400;700&display=swap');
+        
+        /* GOOGLE TOOLTIP VE BALONCUK İMHASI */
+        .goog-te-banner-frame.skiptranslate, .goog-te-balloon-frame { display: none !important; }
+        body { top: 0px !important; }
+        .goog-tooltip, .goog-tooltip:hover { display: none !important; }
+        .goog-text-highlight { background-color: transparent !important; border: none !important; box-shadow: none !important; }
+
         .radar-container { overflow-x: auto; display: flex; gap: 20px; padding: 20px 32px 40px; -webkit-overflow-scrolling: touch; scroll-snap-type: x mandatory; }
         .radar-container::-webkit-scrollbar { height: 4px; }
         .radar-container::-webkit-scrollbar-thumb { background: #1e2d4a; border-radius: 10px; }
