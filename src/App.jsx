@@ -40,7 +40,7 @@ const SOURCE_LINKS = [
   { name: "Investing.com", url: "https://www.investing.com", color: "#F38B00", font: "sans-serif", weight: "900" },
   { name: "Bloomberg HT", url: "https://www.bloomberght.com", color: "#E8E6E0", font: "sans-serif", weight: "900" },
   { name: "Yahoo Finance", url: "https://finance.yahoo.com", color: "#A666FA", font: "sans-serif", weight: "900", style: "italic" },
-  { name: "Bigpara", url: "https://www.bigpara.com", color: "#FF3333", font: "sans-serif", weight: "900" },
+  { name: "Bigpara", url: "https://bigpara.hurriyet.com.tr/", color: "#FF3333", font: "sans-serif", weight: "900" },
   { name: "KAP", url: "https://www.kap.org.tr", color: "#00BFFF", font: "sans-serif", weight: "900" },
   { name: "Para Analiz", url: "https://www.paraanaliz.com", color: "#E8E6E0", font: "sans-serif", weight: "700" },
   { name: "Dünya", url: "https://www.dunya.com", color: "#FF3333", font: "'Playfair Display', serif", weight: "900" },
