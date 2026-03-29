@@ -30,16 +30,8 @@ const SOURCE_LINKS = [
   { name: "Barron's", url: "https://www.barrons.com", color: "#E8E6E0" },
   { name: "Politico", url: "https://www.politico.com", color: "#FF3344" },
   { name: "Al Jazeera", url: "https://www.aljazeera.com", color: "#F9B000" },
-  { name: "Nikkei Asia", url: "https://asia.nikkei.com", color: "#FF4A4A" },
-  { name: "SCMP", url: "https://www.scmp.com", color: "#0082E6" },
-  { name: "CoinDesk", url: "https://www.coindesk.com", color: "#00D1B2" },
-  { name: "Cointelegraph", url: "https://cointelegraph.com", color: "#FABF2C" },
   { name: "Bigpara", url: "https://bigpara.hurriyet.com.tr/", color: "#FF3333" },
   { name: "KAP", url: "https://www.kap.org.tr", color: "#00BFFF" },
-  { name: "Dünya", url: "https://www.dunya.com", color: "#FF3333" },
-  { name: "Para Analiz", url: "https://www.paraanaliz.com", color: "#E8E6E0" },
-  { name: "Kitco", url: "https://www.kitco.com", color: "#00D46A" },
-  { name: "Investing.com", url: "https://www.investing.com", color: "#F38B00" },
 ];
 
 const getRelativeTime = (ts) => {
@@ -61,13 +53,7 @@ const TradingViewLiveTicker = memo(() => {
     script.src = "https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js";
     script.type = "text/javascript"; script.async = true;
     script.innerHTML = JSON.stringify({
-      "symbols": [
-        { "proName": "OANDA:XAUUSD", "title": "GOLD" },
-        { "proName": "OANDA:XAGUSD", "title": "SILVER" },
-        { "proName": "TVC:UKOIL", "title": "BRENT" },
-        { "proName": "FX:USDTRY", "title": "USD/TRY" },
-        { "proName": "BINANCE:BTCUSDT", "title": "BTC" }
-      ],
+      "symbols": [{ "proName": "OANDA:XAUUSD", "title": "GOLD" }, { "proName": "OANDA:XAGUSD", "title": "SILVER" }, { "proName": "TVC:UKOIL", "title": "BRENT" }, { "proName": "FX:USDTRY", "title": "USD/TRY" }, { "proName": "BINANCE:BTCUSDT", "title": "BTC" }],
       "showSymbolLogo": true, "colorTheme": "dark", "isTransparent": false, "displayMode": "regular", "locale": "en", "backgroundColor": "#000000"
     });
     container.current.appendChild(script);
@@ -85,16 +71,14 @@ export default function GlobalHaberler() {
 
   useEffect(() => {
     document.title = "WORLD WINDOWS";
-    const link = document.querySelector("link[rel*='icon']") || document.createElement('link');
+    // Favicon & Translate Init
+    const head = document.getElementsByTagName('head')[0];
+    let link = document.querySelector("link[rel*='icon']") || document.createElement('link');
     link.type = 'image/jpeg'; link.rel = 'shortcut icon'; link.href = '/logo.jpeg';
-    document.getElementsByTagName('head')[0].appendChild(link);
+    head.appendChild(link);
 
     window.googleTranslateElementInit = () => {
-      new window.google.translate.TranslateElement({
-        pageLanguage: 'en',
-        includedLanguages: 'en,tr,es,de,fr,ar,zh-CN,ru,hi,ja,ko,th,kk,az,el,pt,cs,da,nl',
-        autoDisplay: false
-      }, 'google_translate_element');
+      new window.google.translate.TranslateElement({ pageLanguage: 'en', includedLanguages: 'en,tr,es,de,fr,ar,zh-CN,ru,hi,ja,ko,th,kk,az,el,pt,cs,da,nl', autoDisplay: false }, 'google_translate_element');
     };
     const script = document.createElement("script");
     script.src = "//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit&hl=en";
@@ -102,7 +86,6 @@ export default function GlobalHaberler() {
     document.body.appendChild(script);
   }, []);
 
-  // GERİ SAYIM MEKANİZMASI (SYNC TIMER)
   useEffect(() => {
     const timer = setInterval(() => {
       setTimeLeft(prev => { 
@@ -136,12 +119,9 @@ export default function GlobalHaberler() {
             let rawLink = (linkElem?.textContent || linkElem?.getAttribute("href") || "#").trim();
             if (rawLink.startsWith("/")) rawLink = feedOrigin + rawLink;
             if (rawLink.includes('bigpara.com')) rawLink = rawLink.replace('www.bigpara.com', 'bigpara.hurriyet.com.tr');
-
             const desc = item.querySelector("description")?.textContent || item.querySelector("summary")?.textContent || "";
             const cleanDesc = desc.replace(/<[^>]*>?/gm, '');
             let imgUrl = `https://picsum.photos/seed/${encodeURIComponent(title.slice(0,5))}/800/450`;
-            const enclosure = item.querySelector("enclosure");
-            if (enclosure?.getAttribute("url")) imgUrl = enclosure.getAttribute("url");
             const pubDate = item.querySelector("pubDate")?.textContent || item.querySelector("published")?.textContent;
             return { id: Math.random(), baslik: title, detay: cleanDesc, kaynak: feedTitle.replace(/ - BBC News| \| World/gi, ''), url: rawLink, img: imgUrl, tagId: activeTag.id, timestamp: isNaN(new Date(pubDate).getTime()) ? Date.now() : new Date(pubDate).getTime() };
           });
@@ -168,10 +148,10 @@ export default function GlobalHaberler() {
     <div style={{ paddingTop: "40px", minHeight: "100vh", background: "#080c14", color: "#e8e6e0", fontFamily: "'Georgia', serif", overflowX: "hidden" }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,400;1,700&family=Source+Sans+3:wght@400;700&display=swap');
-        .radar-container { overflow-x: auto; display: flex; gap: 20px; padding: 20px 32px 40px; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; }
+        .radar-container { overflow-x: auto; display: flex; gap: 20px; padding: 20px 32px 40px; -webkit-overflow-scrolling: touch; }
         .radar-container::-webkit-scrollbar { height: 4px; }
         .radar-container::-webkit-scrollbar-thumb { background: #1e2d4a; border-radius: 10px; }
-        .news-card { min-width: 400px; max-width: 400px; background: #0d1424; border: 1px solid #1e2d4a; border-radius: 12px; cursor: pointer; overflow: hidden; flex-shrink: 0; scroll-snap-align: start; transition: 0.3s; }
+        .news-card { min-width: 400px; max-width: 400px; background: #0d1424; border: 1px solid #1e2d4a; border-radius: 12px; cursor: pointer; overflow: hidden; flex-shrink: 0; }
         .news-card img { width: 100%; height: 220px; object-fit: cover; border-bottom: 3px solid #c9a96e; }
         .top-header-container { padding: 20px 32px 5px; display: flex; justify-content: space-between; align-items: center; max-width: 1400px; margin: 0 auto; }
         .tag-bar { display: flex; gap: 8px; overflow-x: auto; padding: 12px 32px; background: #0d1424; border-bottom: 1px solid #1e2d4a; position: sticky; top: 0; z-index: 100; }
@@ -185,14 +165,12 @@ export default function GlobalHaberler() {
         .header-title { font-family: 'Playfair Display', serif; font-size: 32px; color: #c9a96e; font-weight: 900; margin: 0; }
         .search-input { background: #080c14; border: 1px solid #c9a96e; color: #e8e6e0; padding: 6px 12px; border-radius: 4px; outline: none; width: 250px; }
         .fiyakali-slogan { font-family: 'Playfair Display', serif; font-style: italic; color: #c9a96e; opacity: 0.9; font-size: 15px; margin-top: 4px; letter-spacing: 0.5px; }
-        .footer-link { color: #4a6080; text-decoration: none; margin: 0 15px; font-size: 12px; font-weight: bold; cursor: pointer; transition: 0.2s; }
-        .footer-link:hover { color: #c9a96e; }
+        .footer-link { color: #4a6080; text-decoration: none; margin: 0 10px; font-size: 12px; font-weight: bold; cursor: pointer; }
 
         @media (max-width: 768px) {
           .top-header-container { flex-direction: column; align-items: flex-start; padding: 15px 20px; }
-          .header-right-panel { width: 100%; justify-content: space-between; margin-top: 15px; }
+          .header-right-panel { width: 100%; justify-content: space-between; margin-top: 15px; display: flex !important; align-items: center; }
           .news-card { min-width: 78vw; max-width: 78vw; }
-          .news-card img { height: 180px; }
           .archive-grid { grid-template-columns: 1fr; padding: 20px; }
           .modal-content { padding: 20px; width: 95%; }
         }
@@ -211,39 +189,16 @@ export default function GlobalHaberler() {
         </div>
       )}
 
-      {modalType === 'about' && (
+      {modalType && modalType !== 'news' && (
         <div className="modal-overlay" onClick={() => setModalType(null)}>
           <div className="modal-content" onClick={e => e.stopPropagation()}>
             <button className="close-btn" onClick={() => setModalType(null)}>✕</button>
-            <h2 style={{ color: "#c9a96e", fontFamily: "'Playfair Display'" }}>ABOUT US</h2>
-            <p style={{ lineHeight: "1.8", color: "#8a9ab0" }}>World Windows is a professional news terminal that scans global finance, geopolitics, and economy news in seconds. Our goal is to present the complex news flow on a single screen in its purest and fastest form.</p>
-            <h3 style={{ color: "#c9a96e", marginTop: "30px", fontSize: "16px", borderBottom: "1px solid #1e2d4a", paddingBottom: "10px" }}>INTEGRATED GLOBAL SOURCES</h3>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: "10px", marginTop: "15px" }}>
-              {SOURCE_LINKS.map(s => (
-                <a key={s.name} href={s.url} target="_blank" rel="noreferrer" style={{ color: s.color, textDecoration: "none", background: "#080c14", padding: "6px 12px", borderRadius: "6px", fontSize: "11px", border: "1px solid #1e2d4a", fontWeight: "bold" }}>{s.name}</a>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {modalType === 'contact' && (
-        <div className="modal-overlay" onClick={() => setModalType(null)}>
-          <div className="modal-content" onClick={e => e.stopPropagation()}>
-            <button className="close-btn" onClick={() => setModalType(null)}>✕</button>
-            <h2 style={{ color: "#c9a96e", fontFamily: "'Playfair Display'" }}>CONTACT</h2>
-            <p style={{ color: "#8a9ab0" }}>For collaborations, news tips, or technical support:</p>
-            <h3 style={{ color: "#fff", marginTop: "20px" }}>worldwindows.network@gmail.com</h3>
-          </div>
-        </div>
-      )}
-
-      {modalType === 'privacy' && (
-        <div className="modal-overlay" onClick={() => setModalType(null)}>
-          <div className="modal-content" onClick={e => e.stopPropagation()}>
-            <button className="close-btn" onClick={() => setModalType(null)}>✕</button>
-            <h2 style={{ color: "#c9a96e", fontFamily: "'Playfair Display'" }}>PRIVACY POLICY</h2>
-            <p style={{ color: "#8a9ab0", lineHeight: "1.8" }}>The privacy of your data is important to us. World Windows terminal does not collect personal data without your consent. We use standard browser cookies to improve your user experience and for analytical purposes. For more details, you can contact us via email.</p>
+            <h2 style={{ color: "#c9a96e", fontFamily: "'Playfair Display'" }}>{modalType.toUpperCase()}</h2>
+            <p style={{ color: "#8a9ab0", lineHeight: "1.8" }}>
+              {modalType === 'about' && "World Windows is a professional news terminal that scans global finance, geopolitics, and economy news. Integrated sources include: Reuters, FT, WSJ, Bloomberg HT, BBC, NYT, CNBC and more."}
+              {modalType === 'contact' && "Email: worldwindows.network@gmail.com"}
+              {modalType === 'privacy' && "We value your privacy. We use standard cookies for analytics and user experience."}
+            </p>
           </div>
         </div>
       )}
@@ -290,7 +245,7 @@ export default function GlobalHaberler() {
           {displayData.archive.map(n => (
             <div key={n.id} className="archive-card" onClick={() => { setSelectedNews(n); setModalType('news'); }}>
               <div style={{ fontSize: "10px", color: "#c9a96e", fontWeight: "900" }}>{n.kaynak.toUpperCase()} • {getRelativeTime(n.timestamp)}</div>
-              <h4 style={{ fontSize: "15px", margin: "8px 0 0", lineHeight: "1.4" }}>{n.baslik}</h4>
+              <h4 style={{ fontSize: "15px", margin: "8px 0 0" }}>{n.baslik}</h4>
             </div>
           ))}
         </div>
@@ -300,10 +255,10 @@ export default function GlobalHaberler() {
         <div style={{ color: "#c9a96e", fontWeight: "900", marginBottom: "20px" }}>WORLD WINDOWS</div>
         <div style={{ display: "flex", justifyContent: "center", flexWrap: "wrap", gap: "10px" }}>
           <span className="footer-link" onClick={() => setModalType('about')}>ABOUT US</span>
-          <span className="footer-link" onClick={() => setModalType('privacy')}>PRIVACY POLICY</span>
+          <span className="footer-link" onClick={() => setModalType('privacy')}>PRIVACY</span>
           <span className="footer-link" onClick={() => setModalType('contact')}>CONTACT</span>
         </div>
-        <div style={{ color: "#3a5278", fontSize: "10px", marginTop: "30px" }}>© 2026 World Windows Terminal. All Rights Reserved.</div>
+        <div style={{ color: "#3a5278", fontSize: "10px", marginTop: "20px" }}>© 2026 World Windows Terminal. All Rights Reserved.</div>
       </footer>
       <Analytics />
     </div>
