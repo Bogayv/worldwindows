@@ -93,29 +93,24 @@ export default function GlobalHaberler() {
   useEffect(() => {
     document.title = "WORLD WINDOWS";
     
-    const hardCleanup = () => {
-      // BANT VE BALONCUKLARI GÖRÜNMEZ YAP VE YÜKSEKLİĞİ SIFIRLA
+    const cleaner = () => {
+      // BANT VE BALONCUKLARI SIFIRLA
       const badSelectors = [
         '.goog-te-balloon-frame', '.goog-te-balloon-wrapper', 
         '.goog-te-menu-frame', '.goog-tooltip', '#goog-gt-tt', 
         '.goog-te-spinner-pos', '.goog-te-banner-frame', 
-        'iframe.goog-te-banner-frame', '.goog-te-banner', '.skiptranslate'
+        'iframe.goog-te-banner-frame', '.goog-te-banner'
       ];
-      badSelectors.forEach(s => {
-        document.querySelectorAll(s).forEach(el => {
-          el.style.setProperty("display", "none", "important");
-          el.style.setProperty("visibility", "hidden", "important");
-          el.style.setProperty("height", "0px", "important");
-          el.style.setProperty("opacity", "0", "important");
-        });
-      });
+      badSelectors.forEach(s => document.querySelectorAll(s).forEach(el => {
+        el.style.display = "none"; el.style.opacity = "0"; el.style.height = "0";
+      }));
 
-      // SAYFA KAYMASINI BETONA GÖM
+      // SAYFA KAYMASINI SIFIRLA
       document.body.style.setProperty("top", "0px", "important");
       document.documentElement.style.setProperty("margin-top", "0px", "important");
     };
 
-    const observer = new MutationObserver(hardCleanup);
+    const observer = new MutationObserver(cleaner);
     observer.observe(document.body, { childList: true, subtree: true });
 
     const initTranslate = () => {
@@ -137,7 +132,7 @@ export default function GlobalHaberler() {
     initTranslate();
 
     const styleInterval = setInterval(() => {
-      hardCleanup();
+      cleaner();
       const combo = document.querySelector('.goog-te-combo');
       if (combo) {
         if (combo.options && combo.options.length > 0) {
@@ -154,8 +149,7 @@ export default function GlobalHaberler() {
             combo.options[0].textContent = "LANG";
           }
         }
-        // ALTIN KUTU KİMLİK KORUMASI
-        combo.style.cssText = "background-color: #c9a96e !important; color: #0d1424 !important; border: none !important; padding: 0px 8px !important; border-radius: 4px !important; font-size: 11px !important; font-weight: 900 !important; font-family: 'Source Sans 3', sans-serif !important; text-transform: uppercase !important; cursor: pointer !important; height: 30px !important; width: 75px !important; outline: none !important; margin: 0 !important; display: block !important; opacity: 1 !important; visibility: visible !important; pointer-events: auto !important;";
+        combo.style.cssText = "background-color: #c9a96e !important; color: #0d1424 !important; border: none !important; padding: 0px 8px !important; border-radius: 4px !important; font-size: 11px !important; font-weight: 900 !important; font-family: 'Source Sans 3', sans-serif !important; text-transform: uppercase !important; cursor: pointer !important; height: 30px !important; width: 75px !important; outline: none !important; margin: 0 !important; appearance: none !important; display: block !important; opacity: 1 !important;";
       }
       const gadget = document.querySelector('.goog-te-gadget');
       if (gadget) {
@@ -163,7 +157,7 @@ export default function GlobalHaberler() {
         const textNode = Array.from(gadget.childNodes).find(n => n.nodeType === 3);
         if (textNode && textNode.textContent.includes('tarafından')) textNode.textContent = ' Google Translate';
       }
-    }, 50);
+    }, 150);
 
     return () => { clearInterval(styleInterval); observer.disconnect(); };
   }, []);
@@ -232,16 +226,16 @@ export default function GlobalHaberler() {
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,400;1,700&family=Source+Sans+3:wght@400;700&display=swap');
         
-        /* RADİKAL BANNER İMHASI */
-        .goog-te-banner-frame, .goog-te-banner, iframe.goog-te-banner-frame, .goog-te-menu-frame, .goog-tooltip, #goog-gt-tt, .goog-te-balloon-frame { 
-           display: none !important; visibility: hidden !important; height: 0 !important; width: 0 !important; opacity: 0 !important;
+        /* BANT VE BALONCUKLARI SIFIRLA AMA ALTIN KUTUYU KORU */
+        iframe.goog-te-banner-frame, .goog-te-banner-frame, .goog-te-banner, .goog-tooltip, #goog-gt-tt, .goog-te-balloon-frame { 
+           display: none !important; visibility: hidden !important; height: 0 !important; width: 0 !important;
         }
         
         html, body { 
-          top: 0px !important; margin-top: 0px !important; padding-top: 0px !important; position: static !important; background-color: #080c14 !important; 
+          top: 0px !important; margin-top: 0px !important; position: static !important; background-color: #080c14 !important; 
         }
 
-        /* YAZILAR İÇİN BALONCUK ÖNLEYİCİ */
+        /* YAZI ETKILEŞIM YASAĞI */
         h1, h2, h3, h4, p, span, font { pointer-events: none !important; user-select: none !important; }
         .news-card, .archive-card, .tag-pill, button, a, .close-btn, .footer-link, #google_translate_element, .goog-te-combo { pointer-events: auto !important; }
 
@@ -294,7 +288,7 @@ export default function GlobalHaberler() {
              <div><h1 className="header-title">WORLD WINDOWS</h1><div className="fiyakali-slogan">Global news to understand the world</div></div>
           </div>
           <div className="header-right-panel" translate="no" style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-             {/* ALTIN KUTU KORUMA ALANI */}
+             {/* BIZIM KORUNAN KUTUMUZ */}
              <div id="google_translate_element" style={{ position: "relative", zIndex: 10001, display: "block !important" }}></div>
              <div style={{ fontSize: "11px", color: "#c9a96e", fontWeight: "bold" }}>SYNC: {timeLeft}s</div>
              <button onClick={() => { fetchCollectiveNews(); setTimeLeft(60); }} style={{ background: "#c9a96e", border: "none", padding: "0 12px", height: "30px", borderRadius: "4px", fontWeight: "900", cursor: "pointer", fontSize: "10px", pointerEvents: "auto" }}>SYNC NOW</button>
