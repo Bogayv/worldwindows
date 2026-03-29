@@ -83,7 +83,11 @@ export default function GlobalHaberler() {
     head.appendChild(link);
 
     window.googleTranslateElementInit = () => {
-      new window.google.translate.TranslateElement({ pageLanguage: 'en', includedLanguages: 'en,tr,es,de,fr,ar,zh-CN,ru,hi,ja,ko,th,kk,az,el,pt,cs,da,nl', autoDisplay: false }, 'google_translate_element');
+      new window.google.translate.TranslateElement({
+        pageLanguage: 'en',
+        includedLanguages: 'en,tr,es,de,fr,ar,zh-CN,ru,hi,ja,ko,th,kk,az,el,pt,cs,da,nl',
+        autoDisplay: false
+      }, 'google_translate_element');
     };
     const script = document.createElement("script");
     script.src = "//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit&hl=en";
@@ -141,16 +145,13 @@ export default function GlobalHaberler() {
             if (rawLink.includes('bigpara.com')) rawLink = rawLink.replace('www.bigpara.com', 'bigpara.hurriyet.com.tr');
             const pubDate = item.querySelector("pubDate")?.textContent || item.querySelector("published")?.textContent || item.querySelector("updated")?.textContent;
             const timestamp = pubDate ? new Date(pubDate).getTime() : Date.now();
-            let priorityScore = 0;
-            const t = title.toLowerCase();
-            if (/breaking|emergency|war|coup|nuclear|savaş|darbe/.test(t)) priorityScore = 100;
-            else if (/fed|trump|silver|critical minerals|putin|rates|gümüş|kritik mineral/.test(t)) priorityScore = 50;
-            return { id: Math.random(), baslik: title, detay: (item.querySelector("description")?.textContent || "").replace(/<[^>]*>?/gm, ''), kaynak: feedTitle.replace(/ - BBC News| \| World/gi, ''), url: rawLink, img: `https://picsum.photos/seed/${encodeURIComponent(title.slice(0,5))}/800/450`, tagId: activeTag.id, timestamp: isNaN(timestamp) ? Date.now() : timestamp, score: priorityScore };
+            return { id: Math.random(), baslik: title, detay: (item.querySelector("description")?.textContent || "").replace(/<[^>]*>?/gm, ''), kaynak: feedTitle.replace(/ - BBC News| \| World/gi, ''), url: rawLink, img: `https://picsum.photos/seed/${encodeURIComponent(title.slice(0,5))}/800/450`, tagId: activeTag.id, timestamp: isNaN(timestamp) ? Date.now() : timestamp };
           });
         } catch (e) { return []; }
       });
       const results = await Promise.all(fetchPromises);
-      setNewsPool(results.flat().sort((a, b) => (b.score - a.score) || (b.timestamp - a.timestamp)));
+      // SADECE ZAMANA GÖRE SIRALA (EN YENİ EN ÜSTTE)
+      setNewsPool(results.flat().sort((a, b) => b.timestamp - a.timestamp));
     } catch (e) {}
   }
 
@@ -162,7 +163,7 @@ export default function GlobalHaberler() {
     }
     const radar = []; const sourceCount = {};
     for (const item of filtered) {
-      if (radar.length >= 40) break; // 40 HABER SINIRI GERİ GELDİ
+      if (radar.length >= 40) break;
       if (!sourceCount[item.kaynak] || sourceCount[item.kaynak] < 3) {
         radar.push(item); sourceCount[item.kaynak] = (sourceCount[item.kaynak] || 0) + 1;
       }
