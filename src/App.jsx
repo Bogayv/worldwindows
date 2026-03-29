@@ -59,7 +59,6 @@ export default function GlobalHaberler() {
     window.googleTranslateElementInit = () => {
       new window.google.translate.TranslateElement({
         pageLanguage: 'en',
-        // İNGİLİZCE (EN) ÇIKARILDI, YENİ GLOBAL DİLLER EKLENDİ
         includedLanguages: 'tr,es,de,fr,ar,zh-CN,ru,hi,ja,ko,th,kk,az,el,pt,cs,da,nl',
         autoDisplay: false
       }, 'google_translate_element');
@@ -70,7 +69,6 @@ export default function GlobalHaberler() {
     script.async = true;
     document.body.appendChild(script);
 
-    // KISA "EN" YAZISI VE DARALTILMIŞ BUTON TASARIMI
     const styleInterval = setInterval(() => {
       const combo = document.querySelector('.goog-te-combo');
       if (combo) {
@@ -79,7 +77,6 @@ export default function GlobalHaberler() {
             combo.options[0].text = 'EN';
           }
         }
-        // padding azaltıldı ve width daraltıldı
         combo.style.cssText = "background-color: #c9a96e !important; color: #0d1424 !important; border: none !important; padding: 0px 8px !important; border-radius: 4px !important; font-size: 11px !important; font-weight: 900 !important; font-family: 'Source Sans 3', sans-serif !important; text-transform: uppercase !important; cursor: pointer !important; height: 30px !important; width: 60px !important; outline: none !important;";
       }
       
@@ -191,12 +188,16 @@ export default function GlobalHaberler() {
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(8,12,20,0.98); backdrop-filter: blur(15px); z-index: 10000; display: flex; justify-content: center; align-items: center; padding: 20px; }
         .modal-content { background: #0d1424; border: 1px solid #c9a96e; border-radius: 12px; max-width: 850px; width: 100%; max-height: 90vh; overflow-y: auto; position: relative; padding: 40px; }
         
-        /* === BALONCUK VE BANT GİZLEME CSS === */
+        /* === BALONCUK, BANT VE PENCERE YOK EDİCİ CSS (KESİN ÇÖZÜM) === */
         body { top: 0px !important; position: static !important; margin-top: 0px !important; }
         iframe.goog-te-banner-frame { display: none !important; visibility: hidden !important; }
         .goog-te-banner-frame { display: none !important; }
         .goog-logo-link { display: none !important; }
-        .goog-tooltip { display: none !important; }
+        
+        /* Hover olunca çıkan "Orijinal metni göster" baloncukları ve pencereleri */
+        #goog-gt-tt { display: none !important; visibility: hidden !important; opacity: 0 !important; }
+        .goog-te-balloon-frame { display: none !important; visibility: hidden !important; }
+        .goog-tooltip { display: none !important; visibility: hidden !important; }
         .goog-tooltip:hover { display: none !important; }
         .goog-text-highlight { background-color: transparent !important; border: none !important; box-shadow: none !important; }
 
