@@ -56,7 +56,6 @@ export default function GlobalHaberler() {
   const [timeLeft, setTimeLeft] = useState(60);
   const [modalType, setModalType] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const radarRef = useRef(null);
 
   useEffect(() => {
     document.documentElement.lang = "en";
@@ -72,24 +71,6 @@ export default function GlobalHaberler() {
     script.async = true;
     document.body.appendChild(script);
   }, []);
-
-  useEffect(() => {
-    const el = radarRef.current;
-    if (!el) return;
-    let isPaused = false;
-    const autoScroll = () => {
-      if (!isPaused && el) {
-        el.scrollLeft += 1;
-        if (el.scrollLeft >= (el.scrollWidth / 2)) el.scrollLeft = 0;
-      }
-    };
-    const interval = setInterval(autoScroll, 30);
-    el.onmouseenter = () => isPaused = true;
-    el.onmouseleave = () => isPaused = false;
-    el.ontouchstart = () => isPaused = true;
-    el.ontouchend = () => isPaused = false;
-    return () => clearInterval(interval);
-  }, [newsPool]);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -120,7 +101,6 @@ export default function GlobalHaberler() {
             const linkElem = item.querySelector("link");
             let rawLink = (linkElem?.textContent || linkElem?.getAttribute("href") || "#").trim();
             
-            // URL ONARICI (404 Çözümü)
             if (rawLink.startsWith("/")) rawLink = feedOrigin + rawLink;
             if (rawLink.includes('bigpara.com')) rawLink = rawLink.replace('www.bigpara.com', 'bigpara.hurriyet.com.tr');
 
@@ -157,49 +137,72 @@ export default function GlobalHaberler() {
       return { radar: [], archive: [...filtered].sort((a,b) => b.timestamp - a.timestamp) };
     }
     const sorted = [...filtered].sort((a, b) => b.timestamp - a.timestamp);
-    return { radar: sorted.slice(0, 8), archive: sorted.slice(8, 500) };
+    return { radar: sorted.slice(0, 12), archive: sorted.slice(12, 500) };
   }, [newsPool, activeTag, searchTerm]);
 
   return (
     <div style={{ paddingTop: "40px", minHeight: "100vh", background: "#080c14", color: "#e8e6e0", fontFamily: "'Georgia', serif", overflowX: "hidden" }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,400;1,700&family=Source+Sans+3:wght@400;700&display=swap');
-        .radar-scroll-area { overflow-x: auto; display: flex; gap: 24px; padding: 20px 32px 40px; scroll-behavior: smooth; -webkit-overflow-scrolling: touch; }
-        .radar-scroll-area::-webkit-scrollbar { display: none; }
-        .news-card { min-width: 420px; max-width: 420px; background: #0d1424; border: 1px solid #1e2d4a; border-radius: 12px; cursor: pointer; overflow: hidden; flex-shrink: 0; }
-        .news-card img { width: 100%; height: 240px; object-fit: cover; border-bottom: 3px solid #c9a96e; }
+        
+        .radar-container { 
+          overflow-x: auto; 
+          display: flex; 
+          gap: 20px; 
+          padding: 20px 32px 40px; 
+          scroll-snap-type: x mandatory;
+          -webkit-overflow-scrolling: touch;
+        }
+        .radar-container::-webkit-scrollbar { height: 4px; }
+        .radar-container::-webkit-scrollbar-thumb { background: #1e2d4a; border-radius: 10px; }
+
+        .news-card { 
+          min-width: 400px; 
+          max-width: 400px; 
+          background: #0d1424; 
+          border: 1px solid #1e2d4a; 
+          border-radius: 12px; 
+          cursor: pointer; 
+          overflow: hidden; 
+          flex-shrink: 0;
+          scroll-snap-align: start;
+        }
+        .news-card img { width: 100%; height: 220px; object-fit: cover; border-bottom: 3px solid #c9a96e; }
+        
         .top-header-container { padding: 20px 32px 5px; display: flex; justify-content: space-between; align-items: center; max-width: 1400px; margin: 0 auto; }
         .tag-bar { display: flex; gap: 8px; overflow-x: auto; padding: 12px 32px; background: #0d1424; border-bottom: 1px solid #1e2d4a; position: sticky; top: 0; z-index: 100; }
         .tag-pill { padding: 6px 16px; background: #080c14; border: 1px solid #1e2d4a; border-radius: 4px; color: #4a6080; font-size: 10px; font-weight: 900; cursor: pointer; white-space: nowrap; }
         .tag-pill.active { background: #c9a96e; color: #0d1424; }
+        
         .archive-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 20px; padding: 32px; max-width: 1400px; margin: 0 auto; }
         .archive-card { background: #0d1424; border: 1px solid #1e2d4a; border-radius: 10px; padding: 25px; border-left: 4px solid #1e2d4a; cursor: pointer; }
-        .close-btn { position: fixed; top: 20px; right: 20px; background: #c9a96e; border: none; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; z-index: 20000; font-weight: 900; }
+        
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(8,12,20,0.98); z-index: 10000; display: flex; justify-content: center; align-items: center; padding: 20px; }
-        .modal-content { background: #0d1424; border: 1px solid #c9a96e; border-radius: 12px; max-width: 850px; width: 100%; max-height: 90vh; overflow-y: auto; padding: 40px; }
+        .modal-content { background: #0d1424; border: 1px solid #c9a96e; border-radius: 12px; max-width: 800px; width: 100%; max-height: 90vh; overflow-y: auto; padding: 40px; position: relative; }
+        .close-btn { position: absolute; top: 15px; right: 15px; background: #c9a96e; border: none; width: 35px; height: 35px; border-radius: 50%; cursor: pointer; font-weight: 900; }
+
         .header-title { font-family: 'Playfair Display', serif; font-size: 32px; color: #c9a96e; font-weight: 900; margin: 0; }
-        .action-btn { background: #c9a96e; color: #0d1424; border: none; padding: 0 15px; border-radius: 4px; font-weight: 900; height: 30px; cursor: pointer; font-size: 11px; }
         .search-input { background: #080c14; border: 1px solid #c9a96e; color: #e8e6e0; padding: 6px 12px; border-radius: 4px; outline: none; width: 250px; }
 
         @media (max-width: 768px) {
           .top-header-container { flex-direction: column; align-items: flex-start; padding: 15px 20px; }
           .header-right-panel { width: 100%; justify-content: space-between; margin-top: 15px; }
-          .news-card { min-width: 75vw; max-width: 75vw; } /* MOBİL İÇİN KÜÇÜLTÜLDÜ */
+          .news-card { min-width: 78vw; max-width: 78vw; }
           .news-card img { height: 180px; }
           .archive-grid { grid-template-columns: 1fr; padding: 20px; }
+          .modal-content { padding: 20px; width: 95%; height: auto; }
           .search-input { width: 100%; }
-          .modal-content { padding: 20px; width: 95%; }
         }
       `}</style>
 
       {modalType === 'news' && selectedNews && (
         <div className="modal-overlay" onClick={() => setModalType(null)}>
-          <button className="close-btn" onClick={() => setModalType(null)}>✕</button>
           <div className="modal-content" onClick={e => e.stopPropagation()}>
+            <button className="close-btn" onClick={() => setModalType(null)}>✕</button>
             <img src={selectedNews.img} style={{ width: "100%", height: "250px", objectFit: "cover", borderRadius: "8px", marginBottom: "20px" }} />
             <div style={{ color: "#c9a96e", fontWeight: "bold", fontSize: "12px" }}>{selectedNews.kaynak.toUpperCase()}</div>
-            <h2 style={{ color: "#fff", margin: "15px 0", fontSize: "24px" }}>{selectedNews.baslik}</h2>
-            <p style={{ color: "#8a9ab0", lineHeight: "1.6", fontSize: "16px" }}>{selectedNews.detay}</p>
+            <h2 style={{ color: "#fff", margin: "15px 0", fontSize: "22px" }}>{selectedNews.baslik}</h2>
+            <p style={{ color: "#8a9ab0", lineHeight: "1.6" }}>{selectedNews.detay}</p>
             <a href={selectedNews.url} target="_blank" rel="noreferrer" style={{ background: "#c9a96e", color: "#0d1424", padding: "12px 25px", textDecoration: "none", fontWeight: "bold", borderRadius: "4px", display: "inline-block", marginTop: "20px" }}>GO TO SOURCE ↗</a>
           </div>
         </div>
@@ -208,12 +211,12 @@ export default function GlobalHaberler() {
       <header style={{ background: "#0d1424" }}>
         <div className="top-header-container">
           <div style={{ display: "flex", alignItems: "center" }}>
-             <img src="/logo.jpeg" style={{ width: "55px", height: "55px", marginRight: "15px", objectFit: "contain" }} />
-             <div><h1 className="header-title">WORLD WINDOWS</h1><div style={{ color: "#c9a96e", opacity: 0.8, fontSize: "12px" }}>Global Intelligence Network</div></div>
+             <img src="/logo.jpeg" style={{ width: "50px", height: "50px", marginRight: "12px", objectFit: "contain" }} />
+             <div><h1 className="header-title">WORLD WINDOWS</h1><div style={{ color: "#c9a96e", opacity: 0.8, fontSize: "11px" }}>Global Intelligence Network</div></div>
           </div>
           <div className="header-right-panel" style={{ display: "flex", gap: "10px", alignItems: "center" }} translate="no">
              <div id="google_translate_element"></div>
-             <button onClick={() => { fetchCollectiveNews(); setTimeLeft(60); }} className="action-btn">SYNC NOW</button>
+             <button onClick={() => fetchCollectiveNews()} style={{ background: "#c9a96e", border: "none", padding: "0 12px", height: "30px", borderRadius: "4px", fontWeight: "900", fontSize: "10px", cursor: "pointer" }}>SYNC NOW</button>
           </div>
         </div>
         <div className="tag-bar">{GLOBAL_TAGS.map(t => (<div key={t.id} className={`tag-pill ${activeTag.id === t.id ? 'active' : ''}`} onClick={() => setActiveTag(t)}>#{t.label}</div>))}</div>
@@ -224,25 +227,14 @@ export default function GlobalHaberler() {
         <section style={{ padding: "20px 32px 0", maxWidth: "1400px", margin: "0 auto" }}>
           <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "20px" }}>
             <input type="text" className="search-input" placeholder="Search news..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
-            <h2 style={{ color: "#c9a96e", fontSize: "16px" }}>{activeTag.id === "all" ? "RADAR: SCANNING GLOBAL DATA..." : `LIVE: ${activeTag.label}`}</h2>
+            <h2 style={{ color: "#c9a96e", fontSize: "16px" }}>{activeTag.id === "all" ? "RADAR: GLOBAL SCAN" : `LIVE: ${activeTag.label}`}</h2>
           </div>
         </section>
 
-        {searchTerm.trim() === "" && displayData.radar.length > 0 && (
-          <div className="radar-scroll-area" ref={radarRef}>
-            {/* Orijinal Set */}
+        {searchTerm.trim() === "" && (
+          <div className="radar-container">
             {displayData.radar.map(n => (
               <div key={n.id} className="news-card" onClick={() => { setSelectedNews(n); setModalType('news'); }}>
-                <img src={n.img} />
-                <div style={{ padding: "15px" }}>
-                  <div style={{ color: "#c9a96e", fontWeight: "900", fontSize: "10px" }}>{n.kaynak.toUpperCase()}</div>
-                  <h3 style={{ fontSize: "16px", color: "#e8e6e0", margin: "8px 0 0", lineHeight: "1.3" }}>{n.baslik}</h3>
-                </div>
-              </div>
-            ))}
-            {/* Clone Set for Loop */}
-            {displayData.radar.map(n => (
-              <div key={n.id + '_cl'} className="news-card" onClick={() => { setSelectedNews(n); setModalType('news'); }}>
                 <img src={n.img} />
                 <div style={{ padding: "15px" }}>
                   <div style={{ color: "#c9a96e", fontWeight: "900", fontSize: "10px" }}>{n.kaynak.toUpperCase()}</div>
@@ -265,7 +257,7 @@ export default function GlobalHaberler() {
 
       <footer style={{ padding: "40px", textAlign: "center", borderTop: "1px solid #1e2d4a", marginTop: "40px" }}>
         <div style={{ color: "#c9a96e", fontWeight: "900" }}>WORLD WINDOWS</div>
-        <div style={{ color: "#3a5278", fontSize: "10px", marginTop: "10px" }}>© 2026 World Windows Terminal. All Rights Reserved.</div>
+        <div style={{ color: "#3a5278", fontSize: "10px", marginTop: "10px" }}>© 2026 Terminal. All Rights Reserved.</div>
       </footer>
       <Analytics />
     </div>
